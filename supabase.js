@@ -5,41 +5,42 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = createClient(supabaseUrl, supabaseKey)
 const app = express();
 
-
 class Test{
 
     Test(){
         this.details = {
-            'id':'',
-            'created_at':'',
             'value':"Some Value WOWWWW!"
         }
     }
 
     async Create(){
-       const {error} = await supabase.from('Test').insert(this.details)
-       console.log(error);
-       return error;
+       const {data, error} = await supabase.from('Test').insert({
+        'id':123234987,
+        'created_at':'Some data that',
+        'value':"Some Value WOWWWW!"
+    })
+       if(error){
+            console.log("couldn't do it you idiot")
+            console.log(error);
+            return error
+       }
+       else {
+            console.log("You did you idiot")
+            console.log(data)
+            return data
+       }
     }
 }
 
-function CreateUsers(){
+function CreateTableInDatabase(){};
 
-}
-
-function CreateBusinesses(){
-
-}
-
-function CreateShows(){
-
-}
-
-function CreateTableInDatabase(){
-};
-
-
-
+app.get('/CreateTest', (req, res)=>{
+    let test = new Test();
+    let val = test.Create();
+    let data = val['details'] + val['message']
+    res.setHeader("Content-type", "tex/plain")
+    res.send(data);
+})
 
 app.get('/Create', (req, res)=>{
     let val = {
@@ -49,11 +50,6 @@ app.get('/Create', (req, res)=>{
     CreateTableInDatabase();
 
 });
-
-app.get('/CreateTest', (req, res)=>{
-    let test = new Test();
-    console.log(test.Create());
-})
 
 app.get('/', (req, res)=>{
     res.setHeader('Content-Type', 'text/plain');
