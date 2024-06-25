@@ -15,7 +15,7 @@ class Test{
 
     async Create(){
        const {data, error} = await supabase.from('Test').insert({
-        'id':123234987,
+        'id':153234989,
         'created_at':'Some data that',
         'value':"Some Value WOWWWW!"
     })
@@ -38,7 +38,7 @@ app.get('/CreateTest', (req, res)=>{
     let test = new Test();
     let val = test.Create();
     let data = val['details'] + val['message']
-    res.setHeader("Content-type", "tex/plain")
+    //res.setHeader("Content-type", "tex/plain")
     res.send(data);
 })
 
@@ -51,11 +51,12 @@ app.get('/Create', (req, res)=>{
 
 });
 
+
 app.get('/', (req, res)=>{
     res.setHeader('Content-Type', 'text/plain');
     res.send('This is the root url endpoinnt');
 })
 
-app.listen(8080, ()=>{
+app.listen(8888, ()=>{
     console.log("Listening on port 8080....");
 })
