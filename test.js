@@ -53,6 +53,7 @@ let user = new SupabaseUser({
     password:'randompass1234'
 })
 
+
 user.Create();
 
 //signup_user("yashaswi.kul@gmail.com", "yash18hema06");
