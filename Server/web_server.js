@@ -8,6 +8,31 @@ const expressServer = new ExpressServer();
 expressServer.use_cors(false);
 expressServer.set_port(8888)
 
+
+class ServerResponse{
+    constructor(message){
+        this.response = {
+            'Error':false,
+            'ErrorDetail':null,
+            'Response':message,
+            'ResponseDetail':null,
+        }
+    }
+
+    set_response(message){this.response['Response'] = message}
+    set_not_sucess(detail){
+        this.response['ResponseDetail'] = null
+        this.response['Error'] = true;
+        this.response['ErrorDetail'] = detail
+    }
+    set_success(detail){
+        this.response['Error'] = false;
+        this.response['ErrorDetail'] = null,
+        this.response['ResponseDetail'] = detail
+    }
+    get(){return this.response}
+}
+
 class EventGoServer{
 
     constructor(){
@@ -28,18 +53,43 @@ class EventGoServer{
     }
 
     //URL route for login
-    user_login(req, res){
-        database.login(req.query)
+    async user_login(req, res){
+        let response = await database.login(req.query)
+        console.log(response)
+        if(response == false){
+            let server_resp = new ServerResponse(null)
+            server_resp.set_not_sucess('Login Unsuccessful')
+            res.json(server_resp.get())
+            return false;
+        }
+
+        //If login is successful
+        let server_resp = new ServerResponse(response)
+        server_resp.set_success('Login Successful')
+        res.json(server_resp.get());
     }
 
+
     //Route for sign up
-    user_signup(req, res){
-        database.signup(req.query)
+    async user_signup(req, res){
+        let response = await database.signup(req.query)
+        console.log(response, "server route signup")
+        if(response == false){
+            let server_resp = new ServerResponse(null)
+            server_resp.set_not_sucess('SignUp unsuccessful')
+            res.json(server_resp.get())
+            return false;
+        }
+
+        let server_resp = new ServerResponse(response['user'])
+        server_resp.set_response(response['user'])
+        server_resp.set_success('SignUp Successfull')
+        res.json(server_resp)
     }
 
     //Route for sign ou
     user_signout(req, res){
-        database.signout(req.query)
+        let response = database.signout(req.query)
     }
 
     //Route for creatin show

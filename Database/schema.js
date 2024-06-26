@@ -29,10 +29,10 @@ class Transaction extends BaseEntity{}
 
 
 export class SupabaseUser extends BaseEntity{
-        constructor(attributes){
+        constructor(attributes=null){
             super();
             this.attributes = attributes
-            if(attributes != null){
+            if(this.attributes !== null){
                 this.attributes={
                     email:attributes['email'],
                     password:attributes['password'],
@@ -40,6 +40,7 @@ export class SupabaseUser extends BaseEntity{
             }
             
             else{
+                console.log("supabase useR: else")
                 this.attributes={
                     email:null,
                     password:null,
@@ -49,15 +50,18 @@ export class SupabaseUser extends BaseEntity{
     
     //Create using Anon Key
     async Create(value){
-        if(value === 'adminSDK'){}
+        if(value == 'adminSDK'){}
         
-        else if(value === 'clientSDK'){
-            console.log(this.attributes, "haaa")
+        else if(value == 'clientSDK'){
+            console.log(this.attributes, "Sign Up attributes")
             const{data, error} = await supabaseClient.auth.signUp(this.attributes)
-            if(data){console.log(data); return data}
-            else if(error){console.log(error); return false}
+            if(data !== undefined){
+                console.log(data, error); 
+                if((data['user'] == null) || (data['session'] == null)){console.log("no user created");return false;}
+                else{ console.log("created user "); return data;}
+            }
+            else if(error != undefined){console.log(error); return false}
         }
-
         console.log('select either adminSDK or clientSDK')
         return false;
     }
@@ -179,7 +183,7 @@ export class EventGoUser{
 export class CombinedUser{
     //NOTE: Maybe change name from combined to 'EventGo' since it is better
     constructor(attributes=null){
-        this.attributes = this.attributes
+        this.attributes = attributes
         this._supabase_user = new SupabaseUser(this.attributes)
         this._eventgo_user = new EventGoUser(this.attributes)
         this._ready = new Flag(true);
@@ -203,7 +207,7 @@ export class CombinedUser{
     async SignUp(){
         if(this.__verify_attributes() == false){return false}
         let response = await this._supabase_user.Create('clientSDK');
-        console.log(response)
+        console.log(response, "heree..")
         if(response !== false){
             //check if the user email is verified or not
             if(response['user']['user_metadata']['email_verified'] !== false){
@@ -230,12 +234,30 @@ export class CombinedUser{
         return false
     }
 
-    Login(){}
+    async Login(){
+        let{data, error} = await supabaseClient.auth.signInWithPassword({
+            email:this.attributes['email'],
+            password:this.attributes['password']
+        })
+
+        console.log(data, error)
+        if(data !== undefined){
+            if(data['user'] == null) return false;
+            //If session is valid
+            if(data['session'] == null){
+                return data;
+            }
+            //If session is invalid but account is authenticated
+            else if(data['session'] !== null){
+                return data
+            }
+            //Add some code to handle in case accoutn doesn't exist
+        }
+        else if(error !== undefined){
+            return false;
+        }
+    }
 
 }
-let supauser = new SupabaseUser({
-    email:'yashaswi.kul@gmail.com',
-    password:'random_pass'
-});
 
 export {EntityCreated, EntityNotCreated, EntityDeleted, EntityNotDeleted}

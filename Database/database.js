@@ -4,7 +4,6 @@ import { SupabaseUser, EventGoUser, EventGoBusiness, CombinedUser} from "./schem
 
 
 export class DatabaseSchema{
-
     constructor(){
 
     }
@@ -22,15 +21,20 @@ export class EventGoDatabase{
         this.schema = new DatabaseSchema();
     }
 
-    login(user_json_attr){
-        this.schema.User(user_json_attr).Login();
+    async login(user_json_attr){
+        let resp = this.schema.User(user_json_attr).Login();
+        return resp;
     }
+
     signout(user_json_attr){
-        this.schema.User(user_json_attr).SignOut();
+        return this.schema.User(user_json_attr).SignOut();
     }
-    signup(user_json_attr){
-        this.schema.User(user_json_attr).SignUp();
+
+    async signup(user_json_attr){
+        let resp = await this.schema.User(user_json_attr).SignUp();
+        return resp;
     }
+
     eventgo_schema(){
         return this.schema;
     }
