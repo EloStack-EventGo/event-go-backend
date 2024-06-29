@@ -7,8 +7,11 @@ export const supabaseClient = createClient(SUPA_URL, SUPA_ANON_KEY)
 export const supabaseAdminClient = createClient(SUPA_URL, SUPA_SERVICE_KEY)
 
 export class BaseEntity{
-    constructor(){}
-    SetAttributes(){}
+    constructor(){
+        this.attributes = null
+    }
+    SetAttributes(attributes){this.attributes = attributes}
+    Attributes(){return this.attributes}
     Exists(){}
     Update(){}
     Create(){}
@@ -17,7 +20,39 @@ export class BaseEntity{
 }
 
 class Credential extends BaseEntity{}
-class Transaction extends BaseEntity{}
+
+export class Transaction extends BaseEntity{
+
+    constructor(attributes=null){
+        this.attributes = attributes
+        if(attributes === null){
+            this.attributes = {
+                ID:null,
+                CreatedAt:null,
+                PaymentBy:null,
+                PaymentTo:null,
+                TimeAndDate:null,
+                Amount:null,
+                Currency:null,
+                PaymentType:null
+            }
+        }
+    }
+
+    async Create(){
+        let {data, error} = await supabaseAdminClient.from('Transactions').insert(this.attributes)
+        console.log(data, error, "Class Transaction: Create() tracer")
+        if(data){return true}
+        else if(error){return false}
+    }
+
+    async Delete(){
+        let {data, error} = await supabaseAdminClient.from('Transactions').delete().eq('ID', this.attributes.ID)
+        console.log(data, error, "Class Transaction: Delete() tracer")
+        if(data){return true}
+        else if(error){return false}
+    }
+}
 
 export class Ticket extends BaseEntity{
 
@@ -29,11 +64,14 @@ export class Ticket extends BaseEntity{
                 ID:null,
                 CreatedAt:null,
                 Price:null,
-                BoughtBy:null,
-                IssuedBy:null
+                Onsale:null,
+                Refundable:null,
+                Confirmed:null,
+                BusinessOwnerID:null,
+                CustomerID:null,
+                ShowName:null
             }
         }
-        
         console.log(this.attributes, " CLass Ticket:")
     }
 
@@ -41,14 +79,28 @@ export class Ticket extends BaseEntity{
         this.attributes = this.attributes
     }
 
+    async GenerateTransaction(attributes){
+        attributes.ID = this.attributes.ID
+        attributes.PaymentBy = this.attributes.CustomerID
+        attributes.PaymentTo = this.attributes.BusinessOwnerID
+        this.Amount = this.Price
+        let transaction = new Transaction(attributes)
+        var success = transaction.Create();
+
+    }
     async Create(){
         let{data, error} = await supabaseAdminClient.schema('public').from('Tickets').insert(this.attributes)
         console.log(data, error)
     }
-    Delete(){}
-
+    async Delete(){
+        let{data, error} = await supabaseAdminClient.fron('Tickets').delete().eq('ID', this.attributes.ID)
+        console.log(data, error)
+    }
+    async Update(){}
     Attributes(){return this.attributes}
 }
+
+
 export class Show extends BaseEntity{
 
     constructor(attributes=null){
@@ -73,13 +125,37 @@ export class Show extends BaseEntity{
         }
     }
 
-    Create(){}
-    Delete(){}
+    async Create(){
+        let {data, error} = await supabaseAdminClient.from('Shows').insert(this.attributes)
+        console.log(data, error, "Class Show: Create() Tracer")
+        if(data){return true}
+        else if(error){return false}
+    }
+    async Delete(){
+        let {data, error} = await supabaseAdminClient.from('Shows').delete().eq('ID', this.attributes.ID)
+        console.log(data, error, "Class Show: Delete() tracer")
+        if(data){return true}
+        else if(error){return false}
+    }
+
+    async GetAvailableTicket(){}
+
+    async CreateTicket(attributes){
+        attributes.ID = this.attributes.ID
+        attributes.PaymentTo = this.attributes.ID
+        attributes.Onsale = true;
+        attributes.Refundable = false;
+        var ticket = new Ticket(attributes)
+        let success = ticket.Create();
+
+        if(success != false){}
+    }
+
+    async SellTicket(){}
+
     Update(){}
     Search(){}
-    Attributes(){
-        return this.attributes
-    }
+    Attributes(){return this.attributes}
 }
 
 export class EventGoBusiness extends BaseEntity{
@@ -98,8 +174,14 @@ export class EventGoBusiness extends BaseEntity{
         }
     }
 
+    SetAttributes(){}
+    Attributes(){}
+    async CreateShow(attributes){
+        attributes.ID = this.attributes.ID
+        let show = new Show(attributes)
+        let response = await show.Create()
+    }
 
-    CreateShow(){}
     UpdateProfile(){}
     GetNetProfit(){}
     GetName(){}
@@ -163,6 +245,8 @@ export class SupabaseUser extends BaseEntity{
     }
     return this.user_session}
 }
+
+
 export class EventGoUser{
 
     constructor(attributes=null){
@@ -231,7 +315,17 @@ export class EventGoUser{
     }
 
     Attributes(){return this.attributes}
+    async BuyTicket(BusinessID){
+        let{data, error} = await supabaseAdminClient.from('Tickets').select('ID').eq('ID', BusinessID)
+        //After getting the data modify values
+        data.PaymentBy = this.attributes.ID
+        data.Onsale = false;
+        data.Confirmed = true;
+        var ticket = new Ticket(data)
+        var success = await ticket.Update()
+    }
 }
+
 export class CombinedUser{
     //NOTE: Maybe change name from combined to 'EventGo' since it is better
     constructor(attributes=null){
