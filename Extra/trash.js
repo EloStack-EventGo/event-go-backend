@@ -61,3 +61,34 @@ app.listen(8888, ()=>{console.log("server is running.....")})
 
 
 */
+
+
+/*
+async SignUp(){
+        if(this.__verify_attributes() == false){return false}
+        let response = await this._supabase_user.Create();
+        console.log(response, "Class CombinedUser: Trace response")
+        if(response !== false){
+            //check if the user email is verified or not
+            if(response['user']['user_metadata']['email_verified'] === false){
+                let attributes = {
+                    Address:null,
+                    Email:response['user']['email'],
+                    SupabaseUserID:response['user']['id'],
+                    Password:response['user']['password']
+                }
+                this._eventgo_user.SetAttributes(attributes)
+                let response = await this._eventgo_user.Create();
+                if(response == EntityCreated){return EntityCreated}
+                else{console.log(EntityNotCreated);return false}
+            }
+
+            else{
+                console.log(response)
+                return false
+            }
+        }
+        console.log('Supabase user couldnt be created')
+        return false
+    }
+*/

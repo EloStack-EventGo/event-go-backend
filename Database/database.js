@@ -19,7 +19,7 @@ export class DatabaseSchema{
 export class EventGoDatabase{
 
     constructor(){
-        this.database = createClient(SUPA_URL, SUPA_ANON_KEY)
+        this.supa_database_client = createClient(SUPA_URL, SUPA_ANON_KEY)
         this.schema = new DatabaseSchema();
     }
 
@@ -39,5 +39,9 @@ export class EventGoDatabase{
     
     eventgo_schema(){
         return this.schema;
+    }
+
+    supabase_client(){
+        return this.supa_database_client
     }
 }

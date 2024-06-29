@@ -7,3 +7,19 @@ export class Flag{
     set_true(){this.value=true}
     check(){return this.value}
 }
+
+export class UserSession{
+
+    constructor(session=null){
+        if(session == null){this.session = session}
+        else{
+            this.session = {
+
+            }
+        }
+    }
+
+    data(){
+        return this.session
+    }
+}
