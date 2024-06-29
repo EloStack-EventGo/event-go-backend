@@ -1,46 +1,23 @@
-import express from 'express';
 import {EntityCreated, EntityNotCreated, EntityDeleted, EntityNotDeleted} from '../Database/schema.js';
-import { EventGoDatabase } from '../Database/database.js';
+import {EventGoDatabase } from '../Database/database.js';
+import{ServerResponse} from './utility.js'
 import {ExpressServer} from './express_app.js';
 
+//Database instance for EventGo database
 const database = new EventGoDatabase()
-const expressServer = new ExpressServer();
-expressServer.use_cors(false);
-expressServer.set_port(8888)
+const expressServer = new ExpressServer()
+expressServer.use_cors(false); expressServer.set_port(80)
 
-
-class ServerResponse{
-    constructor(message){
-        this.response = {
-            'Error':false,
-            'ErrorDetail':null,
-            'Response':message,
-            'ResponseDetail':null,
-        }
-    }
-
-    set_response(message){this.response['Response'] = message}
-    set_not_sucess(detail){
-        this.response['ResponseDetail'] = null
-        this.response['Error'] = true;
-        this.response['ErrorDetail'] = detail
-    }
-    set_success(detail){
-        this.response['Error'] = false;
-        this.response['ErrorDetail'] = null,
-        this.response['ResponseDetail'] = detail
-    }
-    get(){return this.response}
-}
 
 class EventGoServer{
 
     constructor(){
+        //NOTE: If you remove a function then make sure to remove route as well
         expressServer.app().get('/', this.root)
         expressServer.app().get('/login', this.user_login)
         expressServer.app().get('/signup', this.user_signup)
         expressServer.app().get('/hostshow', this.create_show)
-        expressServer.app().get('/authenticator', this.authenticator)
+        expressServer.app().get('/confirmation', this.confirmation)
     }
 
     root(req, res){
@@ -93,13 +70,25 @@ class EventGoServer{
     }
 
     //Route for creatin show
-    create_show(req, res){
+    create_show(req, res){}
 
-    }
+    //Confirmation
+    confirmation(req, res){
+        console.log(req, "Class EventGoServer:  Confirmation recieved")
+        let data = {
 
-    //Route for authentication
-    authenticator(req, res){
+        }
+        res.send("Confirmation endpoint reached")
+        /*
+        //Verify the data before creating EventGoUser object in the table
+        let respponse = database.eventgo_schema().EventGoUser(data).Create();
 
+        if(respone == EntityCreated){
+            const resp = ServerResponse(response)
+            resp.set_success('Successfully confirmed user and created user schema')
+            return res.send(resp.get())
+        }
+            */
     }
 }
 

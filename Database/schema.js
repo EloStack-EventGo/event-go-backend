@@ -1,15 +1,10 @@
 import { createClient } from '@supabase/supabase-js';
 import {SUPA_URL, SUPA_ANON_KEY, SUPA_SERVICE_KEY} from './credentials.js';
-import StatusCode from './status_codes.js';
+import {EntityCreated, EntityNotCreated, EntityDeleted, EntityNotDeleted} from './status_codes.js';
 import { Flag } from './utilities.js';
+
 const supabaseClient = createClient(SUPA_URL, SUPA_ANON_KEY)
-//const supabaseAdminClient = createClient(SUPA_URL, SUPA_SERVICE_KEY)
-const EntityCreated = 'Entity created successfully'
-const EntityDeleted = 'Entity deleted successfully'
-const EntityNotDeleted = 'Entity not deleted successfully'
-const EntityNotCreated = 'Entity not created successfully'
-
-
+const supabaseAdminClient = createClient(SUPA_URL, SUPA_SERVICE_KEY)
 
 export class BaseEntity{
     constructor(){}
@@ -22,10 +17,10 @@ export class BaseEntity{
 }
 
 class Credential extends BaseEntity{}
-export class EventGoBusiness extends BaseEntity{}
 class Ticket extends BaseEntity{}
 class Show extends BaseEntity{}
 class Transaction extends BaseEntity{}
+export class EventGoBusiness extends BaseEntity{}
 
 
 export class SupabaseUser extends BaseEntity{
@@ -54,13 +49,21 @@ export class SupabaseUser extends BaseEntity{
         
         else if(value == 'clientSDK'){
             console.log(this.attributes, "Sign Up attributes")
+            //REDIRECT URL FOR THE BACKEND SERVER
+            //NOTE: Need to change things, because URL shouldn't be specified in here but in web_server.js
+            const attributes = {
+                ...this.attributes,
+                options: {
+                    emailRedirectTo: 'http://38.56.129.131:9999/-domain.com/confirmation' // Replace with your actual URL
+                  }    
+            }
             const{data, error} = await supabaseClient.auth.signUp(this.attributes)
+            console.log(data, error, "Class SupabaseUser: Create()")
             if(data !== undefined){
-                console.log(data, error); 
-                if((data['user'] == null) || (data['session'] == null)){console.log("no user created");return false;}
+                if((data['user'] == null)){console.log("no user created");return false;}
                 else{ console.log("created user "); return data;}
             }
-            else if(error != undefined){console.log(error); return false}
+            else if(error !== undefined){console.log(error); return false}
         }
         console.log('select either adminSDK or clientSDK')
         return false;
@@ -113,12 +116,9 @@ export class EventGoUser{
         return true;
     }
     async Create(){
-        //Create the object in the database
 
-        //First create the Supabase User which will be extended to EventGoUser
-
-        //Ignore the UserID if it's not integer because you'd only have integer if someone explicitly wants to create
-        if(typeof this.attributes.UserID !== "number"){
+        //Ignore the UserID if it's not integer because you'd only have integer if someone explicitly wants to create userID
+        if(typeof this.attributes.UserID != "number"){
             delete this.attributes.UserID;
             let list = this.list.slice(1, this.list.length)
             if(this.__verify_attributes(list) == false){return EntityNotCreated}
@@ -126,7 +126,7 @@ export class EventGoUser{
 
         //Since someone wants to create user with specific user id we will run this
         if(this.__verify_attributes(this.attributes) == false){return EntityNotCreated}
-        const{data, error} = await supabaseClient.from('Users').insert(this.attributes)
+        const{data, error} = await supabaseClient.from('EventGoUsers').insert(this.attributes)
         if(data){
             console.log("Yes", data)
             return EntityCreated
@@ -180,6 +180,7 @@ export class EventGoUser{
     AccessCredentials(){}
 }
 
+
 export class CombinedUser{
     //NOTE: Maybe change name from combined to 'EventGo' since it is better
     constructor(attributes=null){
@@ -200,8 +201,20 @@ export class CombinedUser{
         this._ready.set_false()
     }
 
-    SignOut(){
+    async SignOut(){
         if(this.__verify_attributes() == false){return false}
+        try {
+            // Revoking refresh token (optional)
+            await supabaseAdminClient.auth.signOut({access_token: userId }); // Replace with actual token handling
+            console.log('User with ID:', userId, 'signed out (refresh token revoked)');
+        
+            // OR
+        
+            // Custom session invalidation (alternative)
+            // Implement logic to manipulate session data in Supabase using Admin SDK
+          } catch (error) {
+            console.error('Error signing out user:', error);
+          }
     }
 
     async SignUp(){
@@ -233,7 +246,6 @@ export class CombinedUser{
         console.log('Supabase user couldnt be created')
         return false
     }
-
     async Login(){
         let{data, error} = await supabaseClient.auth.signInWithPassword({
             email:this.attributes['email'],
@@ -259,5 +271,4 @@ export class CombinedUser{
     }
 
 }
-
 export {EntityCreated, EntityNotCreated, EntityDeleted, EntityNotDeleted}

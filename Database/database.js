@@ -7,6 +7,8 @@ export class DatabaseSchema{
     constructor(){
 
     }
+    SupaUser(attributes){return new SupabaseUser(attributes);}
+    EventGoUser(attributes){return new EventGoUser(attributes);}
     User(attributes){return new CombinedUser(attributes);}
     Business(attributes){return new EventGoBusiness(attributes);}
     Transaction(attributes){}
@@ -26,7 +28,7 @@ export class EventGoDatabase{
         return resp;
     }
 
-    signout(user_json_attr){
+    async signout(user_json_attr){
         return this.schema.User(user_json_attr).SignOut();
     }
 
@@ -34,7 +36,7 @@ export class EventGoDatabase{
         let resp = await this.schema.User(user_json_attr).SignUp();
         return resp;
     }
-
+    
     eventgo_schema(){
         return this.schema;
     }
