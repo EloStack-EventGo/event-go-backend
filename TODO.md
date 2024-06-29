@@ -15,3 +15,7 @@
 
 
 # Add more functionalities so we can control entire schemas much better and efficiently
+
+
+
+# Fix authencation URLs for signup and stuff
