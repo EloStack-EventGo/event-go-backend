@@ -4,23 +4,23 @@ import {EventGoUser, supabaseAdminClient, supabaseClient, Ticket} from "./schema
 
 //61321867-5baa-46af-83a5-a8757072b9c3
 const details = {
-    UserID:65123312,
-    Email:"yashaswi.kul@gmail.com",
+    UserID:'f450ae12-6103-4d39-b960-130e3d2bb714',
+    Email:"yashaswi2.kul@gmail.com",
     Password:"yash18hema06",
     Address:"750 3rd Ave 2771",
-    SupabaseUserID:625321123942
+    SupabaseUserID:9999
 }
 
 async function createUser(){
-    //Get the supabase user
-    const{data, error} = await supabaseAdminClient.schema('auth').from('users').select('id').eq('id', '61321867-5baa-46af-83a5-a8757072b9c3').single();
-    console.log(data, error)
-
+   
     //Create Eventgo User
     let user = new EventGoUser(details);
+    //user.SetAttributes(details);
     let response = await user.Create();
     console.log(response);
 }
+
+
 
 let ticket_details = {
     ID:null,
@@ -51,7 +51,20 @@ async function createUser2(id){
     console.log(resp2, "ticket data");
 }
 
+
+async function get_session(user_email, pass){
+    let {data, error} = await supabaseAdminClient.auth.signInWithPassword({email:user_email, password:pass})
+    //console.log(data, error, " USER ACESS TOKEN")
+
+    let user = await supabaseAdminClient.auth.getUser(data.session.access_token)
+    console.log(user, "SESSION/USER TOKEN")
+}
+
+
+createUser()
+
+//get_session("yashaswi.kul@gmail.com", "yash18hema06")
 //createUser2(651233124);
 //createUser2(13123124)
-createUser2(72324)
+//createUser2(72324)
 //createUser2(782468712)

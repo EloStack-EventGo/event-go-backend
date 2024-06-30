@@ -1,4 +1,4 @@
-import {EntityCreated, EntityNotCreated, EntityDeleted, EntityNotDeleted} from '../Database/schema.js';
+//import {} from '../Database/schema.js';
 import {EventGoDatabase } from '../Database/database.js';
 import{ServerResponse} from './utility.js'
 import {ExpressServer} from './express_app.js';
@@ -6,7 +6,7 @@ import {ExpressServer} from './express_app.js';
 //Database instance for EventGo database
 const database = new EventGoDatabase()
 const expressServer = new ExpressServer()
-expressServer.use_cors(false); expressServer.set_port(80)
+expressServer.use_cors(false); expressServer.set_port(8888)
 
 
 class EventGoServer{
@@ -70,14 +70,15 @@ class EventGoServer{
     }
 
     //Route for creatin show
-    create_show(req, res){}
+    create_show(req, res){
+        res.send("Endpoint works but no functionality yet")
+    }
 
     //Confirmation
     confirmation(req, res){
         console.log(req, "Class EventGoServer:  Confirmation recieved")
-        let data = {
-
-        }
+        console.log(req.query, req.body)
+        //database.complete_sign_up()
         res.send("Confirmation endpoint reached")
         /*
         //Verify the data before creating EventGoUser object in the table

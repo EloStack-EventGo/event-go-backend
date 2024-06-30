@@ -33,7 +33,13 @@ export class EventGoDatabase{
     }
 
     async signup(user_json_attr){
-        let resp = await this.schema.User(user_json_attr).SignUp();
+        //let resp = await this.schema.User(user_json_attr).SignUp();
+        let resp = await this.schema.SupaUser(user_json_attr).Create();
+        return resp;
+    }
+
+    async complete_sign_up(user_json_attr){
+        let resp = await this.schema.EventGoUser(user_json_attr).Create();
         return resp;
     }
     

@@ -19,3 +19,9 @@
 
 
 # Fix authencation URLs for signup and stuff
+
+
+# Try gettin access token and session cookie for further rocessing
+
+# BASIC AUTH REQUEST FLOW
+

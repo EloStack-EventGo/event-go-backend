@@ -19,8 +19,6 @@ export class BaseEntity{
     Search(){}
 }
 
-class Credential extends BaseEntity{}
-
 export class Transaction extends BaseEntity{
 
     constructor(attributes=null){
@@ -88,10 +86,12 @@ export class Ticket extends BaseEntity{
         var success = transaction.Create();
 
     }
+    
     async Create(){
         let{data, error} = await supabaseAdminClient.schema('public').from('Tickets').insert(this.attributes)
         console.log(data, error)
     }
+
     async Delete(){
         let{data, error} = await supabaseAdminClient.fron('Tickets').delete().eq('ID', this.attributes.ID)
         console.log(data, error)
@@ -131,6 +131,7 @@ export class Show extends BaseEntity{
         if(data){return true}
         else if(error){return false}
     }
+
     async Delete(){
         let {data, error} = await supabaseAdminClient.from('Shows').delete().eq('ID', this.attributes.ID)
         console.log(data, error, "Class Show: Delete() tracer")
@@ -217,7 +218,7 @@ export class SupabaseUser extends BaseEntity{
         const attributes = {
             ...this.attributes,
             options: {
-                emailRedirectTo: 'http://38.56.129.131:9999/-domain.com/confirmation' // Replace with your actual URL
+                //emailRedirectTo: 'http://38.56.129.131:9999/-domain.com/confirmation' // Replace with your actual URL
             }    
         }
         const{data, error} = await supabaseClient.auth.signUp(this.attributes)
@@ -281,16 +282,8 @@ export class EventGoUser{
     }
 
     async Create(){
-
-        //Ignore the UserID if it's not integer because you'd only have integer if someone explicitly wants to create userID
-        if(typeof this.attributes.UserID != "number"){
-            delete this.attributes.UserID;
-            let list = this.list.slice(1, this.list.length)
-            if(this.__verify_attributes(list) == false){return EntityNotCreated}
-        }
-
         //Since someone wants to create user with specific user id we will run this
-        if(this.__verify_attributes(this.attributes) == false){return EntityNotCreated}
+        //if(this.__verify_attributes(this.attributes) == false){return EntityNotCreated}
         const{data, error} = await supabaseClient.from('EventGoUsers').insert(this.attributes)
         if(data){
             console.log("Yes", data)

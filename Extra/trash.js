@@ -92,3 +92,14 @@ async SignUp(){
         return false
     }
 */
+
+
+/*
+
+        //Ignore the UserID if it's not integer because you'd only have integer if someone explicitly wants to create userID
+        /*if(typeof this.attributes.UserID != "number"){
+            delete this.attributes.UserID;
+            let list = this.list.slice(1, this.list.length)
+            if(this.__verify_attributes(list) == false){return EntityNotCreated}
+        }
+*/
