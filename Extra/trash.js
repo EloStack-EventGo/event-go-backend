@@ -194,3 +194,127 @@ const EVG = new EventGoServer();
 EVG.start();
 */
 
+
+/*
+//REDIRECT URL FOR THE BACKEND SERVER
+        //NOTE: Need to change things, because URL shouldn't be specified in here but in web_server.js
+        const attributes = {
+            ...this.attributes,
+            options: {
+                //emailRedirectTo: 'http://38.56.129.131:9999/-domain.com/confirmation' // Replace with your actual URL
+            }    
+        }
+*/
+
+
+/*
+async login(user_json_attr){
+        let resp = this.schema.User(user_json_attr).Login();
+        return resp;
+    }
+
+    async signout(user_json_attr){
+        return this.schema.User(user_json_attr).SignOut();
+    }
+
+    async signup(user_json_attr){
+        let resp = await this.schema.SupaUser(user_json_attr).Create();
+        return resp;
+    }
+
+    async complete_sign_up(user_json_attr){
+        let resp = await this.schema.EventGoUser(user_json_attr).Create();
+        return resp;
+    }
+
+//let response = await database.login(req.query)
+let response = await database.signup(req.query)
+*/
+
+/**
+ * 
+ * if((data['user'] == null)){console.log("no user created");return false;}
+            else{ console.log("created user "); 
+                this.user_session = data
+                return data;}
+ */
+
+
+                /**
+                 * 
+                 * # BASIC AUTH REQUEST FLOW
+
+636da2d2-4167-4109-badc-664536a2379
+                 */
+
+
+/**
+ * 
+ *  async SignUp(){
+        if(this.__verify_attributes() == false){return false}
+        let response = await this._supabase_user.Create();
+        console.log(response, "Class CombinedUser: Trace response")
+        if(response !== false){
+            //check if the user email is verified or not
+            if(this._supabase_user.Authenticated() === false){
+                let attributes = {
+                    Address:null,
+                    Email:response['user']['email'],
+                    SupabaseUserID:response['user']['id'],
+                    Password:response['user']['password']
+                }
+                this._eventgo_user.SetAttributes(attributes)
+                let response = await this._eventgo_user.Create();
+                if(response == EntityCreated){return EntityCreated}
+                else{console.log(EntityNotCreated);return false}
+            }
+
+            else{
+                console.log(response)
+                return false
+            }
+        }
+        console.log('Supabase user couldnt be created')
+        return false
+    }
+
+    async Login(){
+        let{data, error} = await supabaseClient.auth.signInWithPassword({
+            email:this.attributes['email'],
+            password:this.attributes['password']
+        })
+
+        console.log(data, error)
+        if(data !== undefined){
+            if(data['user'] == null) return false;
+            //If session is valid
+            if(data['session'] == null){
+                return data;
+            }
+            //If session is invalid but account is authenticated
+            else if(data['session'] !== null){
+                return data
+            }
+            //Add some code to handle in case accoutn doesn't exist
+        }
+        else if(error !== undefined){
+            return false;
+        }
+    }
+
+    
+    async SignOut(){
+        if(this.__verify_attributes() == false){return false}
+        this.SupaUser().SignOut();
+    }
+
+     __verify_attributes(){
+        return this._ready.check();
+    }
+    
+    SetAttributes(attributes){
+        this.attributes = attributes
+        if(this.attributes !== null){this._ready.set_true();}
+        this._ready.set_false()
+    }
+ */

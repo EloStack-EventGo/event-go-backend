@@ -23,3 +23,20 @@ export class UserSession{
         return this.session
     }
 }
+
+
+export class JsonFieldExtractor{
+
+    constructor(){
+        this.fields = null
+    }
+
+
+    FieldsToExtract(fields){
+        this.fields = fields;
+    }
+
+    Extract(){
+        
+    }
+}

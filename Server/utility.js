@@ -24,7 +24,6 @@ export class ServerResponse{
 }
 
 
-
 export class UserSession{
 
     constructor(session=null){
