@@ -33,29 +33,30 @@ export class Transaction extends BaseEntity{
                 TimeAndDate:null,
                 Amount:null,
                 Currency:null,
-                PaymentType:null
+                PaymentType:null,
+                TransactionID:null,
             }
         }
     }
 
     async Create(){
-        let {data, error} = await supabaseAdminClient.from('Transactions').insert(this.attributes)
-        console.log(data, error, "Class Transaction: Create() tracer")
-        if(data){return true}
-        else if(error){return false}
+        let {error} = await supabaseAdminClient.from('Transactions').insert(this.attributes)
+        console.log(error, "Class Transaction: Create() tracer")
+        if(error){return false}
+        else{return true}
     }
 
     async Delete(){
-        let {data, error} = await supabaseAdminClient.from('Transactions').delete().eq('ID', this.attributes.ID)
-        console.log(data, error, "Class Transaction: Delete() tracer")
-        if(data){return true}
-        else if(error){return false}
+        let response = await supabaseAdminClient.from('Transactions').delete().eq('ID', this.attributes.ID)
+        console.log(response, "Class Transaction: Delete() tracer")
+        if(response){return false}
+        else{return true}
     }
 
     async Update(){
-        let {data, error} = await supabaseAdminClient.from('Transactions').update(this.attributes).eq('ID', this.attributes.ID)
-        if(data)return true;
-        else if(error)return false;
+        let {error} = await supabaseAdminClient.from('Transactions').update(this.attributes).eq('ID', this.attributes.ID)
+        if(error)return false;
+        else return true;
     }
 
     async Exists(){
@@ -64,7 +65,6 @@ export class Transaction extends BaseEntity{
         else if(error)return false;
     }
 }
-
 
 
 export class Ticket extends BaseEntity{
@@ -88,28 +88,41 @@ export class Ticket extends BaseEntity{
         console.log(this.attributes, " CLass Ticket:")
     }
 
-
     async GenerateTransaction(attributes){
         attributes.ID = this.attributes.ID
         attributes.PaymentBy = this.attributes.CustomerID
         attributes.PaymentTo = this.attributes.BusinessOwnerID
         this.Amount = this.Price
         let transaction = new Transaction(attributes)
-        var success = transaction.Create();
+        var success = await transaction.Create();
     }
     
+    async Transaction(){
+        //let value = await this.Exists()
+        let attributes = {ID:null, CreatedAt:null, PaymentBy:null, PaymentTo:null, TimeAndDate:null, Amount:null, Currency:null, PaymentType:null}
+        attributes.ID = this.attributes.ID
+        attributes.PaymentBy = this.attributes.CustomerID
+        attributes.PaymentTo = this.attributes.BusinessOwnerID
+        attributes.Amount = this.attributes.Price
+        console.log(attributes.Amount, this.Price, "Ticket.Transaction()")
+        attributes.Currency = "US Dollars"
+        attributes.PaymentType = "Credit"
+        let transaction = new Transaction(attributes)
+        return transaction
+    }
+
     async Create(){
-        let{data, error} = await supabaseAdminClient.schema('public').from('Tickets').insert(this.attributes)
-        console.log(data, error)
-        if(data){return true}
-        else if(error){return false}
+        let{error} = await supabaseAdminClient.schema('public').from('Tickets').insert(this.attributes)
+        console.log(error)
+        if(error){return false}
+        else{return true}
     }
 
     async Delete(){
-        let{data, error} = await supabaseAdminClient.fron('Tickets').delete().eq('ID', this.attributes.ID)
-        console.log(data, error)
-        if(data){return true}
-        else if(error){return false}
+        let response = await supabaseAdminClient.fron('Tickets').delete().eq('ID', this.attributes.ID)
+        console.log(response)
+        if(response){return true}
+        else{return false}
     }
 
     async Update(){
@@ -123,6 +136,39 @@ export class Ticket extends BaseEntity{
         let{data, error} = await supabaseAdminClient.from('Tickets').select().eq('ID', this.attributes.ID)
         if(data)return true;
         else if(error) return false;
+    }
+
+    async __synchronize_with_database_entry(){
+        //Synchronizes the attribute in the database within the object. Then same attributes can be accessed
+        let{data, error} = await supabaseAdminClient.from('Tickets').select().eq('ID', this.attributes.ID)
+        if(data != undefined && data != null){
+            this.attributes = data[0]
+            console.log("Ticket successfully synchronized")
+            console.log("CURRENT ATTRIBUTES")
+            console.log(this.attributes)
+            return true;
+        }
+
+        console.log("\x1b[31mTicket successfully synchronized\x1b[0m")
+        console.log("\x1b[31mMaybe data in database doesn't exist\x1b[0m")
+        return false;
+    }
+
+    async Synchronize(){
+        //Synchronization wrapper for external use
+        let success = await this.__synchronize_with_database_entry()
+        return success;
+    }
+
+    async GetAvailableTicket(){
+        let{data, error} = await supabaseAdminClient.from('Tickets').select()
+        .eq('ID', this.attributes.ID)
+        .eq('Onsale', true)
+        if(data != undefined && data != null){
+            this.attributes = data[0]
+            return true;
+        }
+        return false
     }
 }
 
@@ -172,15 +218,16 @@ export class Show extends BaseEntity{
 
     async Exists(){
         let{data, error} = await supabaseAdminClient.from('Shows').select().eq('ID', this.attributes.ID)
-        if(data){return true}
-        else if(error){return false}
+        if(data != null && data != undefined && data.length > 0){return true}
+        else {return false}
     }
 
     async CreateTicket(attributes){
-        if(this.Exists() == false){return false}
+        if(await this.Exists() == false){console.log("CreateTicket()!!");return false}
 
         attributes.ID = this.attributes.ID
         attributes.BusinessOwnerID = this.attributes.ID
+        attributes.CustomerID = null;
         attributes.Onsale = true;
         attributes.Refundable = false;
         attributes.ShowName = this.attributes.ShowName;
@@ -191,6 +238,18 @@ export class Show extends BaseEntity{
         return success
     }
 
+    async Ticket(attributes){
+        //let val = await this.Exists()
+        attributes.ID = this.attributes.ID
+        attributes.BusinessOwnerID = this.attributes.ID
+        attributes.CustomerID = null;
+        attributes.Onsale = true;
+        attributes.Refundable = false;
+        attributes.ShowName = this.attributes.ShowName;
+        attributes.Confirmed = false;
+        var ticket = new Ticket(attributes)
+        return ticket
+    }
 }
 
 export class EventGoBusiness extends BaseEntity{
@@ -203,8 +262,7 @@ export class EventGoBusiness extends BaseEntity{
                 ID:null,
                 Name:null,
                 Address:null,
-                NetProfit:null,
-                SupabaseUserID:null
+                NetProfit:null
             }
         }
     }
@@ -217,6 +275,7 @@ export class EventGoBusiness extends BaseEntity{
     }
     
     async Delete(){
+        if(await this.Exists() == false){return false}
         let response = await supabaseAdminClient.from('EventGoBusinesses').delete().eq('ID', this.attributes.ID)
         console.log(response)
         if(response){return false}
@@ -224,6 +283,7 @@ export class EventGoBusiness extends BaseEntity{
     }
     
     async Update(){
+        if(await this.Exists() == false){return false}
         let{error} = await supabaseAdminClient.from('EventGoBusinesses').update(this.attributes).eq('ID', this.attributes.ID)
         console.log(error)
         if(error){return true}
@@ -231,24 +291,116 @@ export class EventGoBusiness extends BaseEntity{
     }
 
     async Exists(){
-        let{data, error} = await supabaseAdminClient.from('EventGoBusinesses').select().eq('ID', this.attributes.ID)
-        console.log(data, error)
-        if(data){return true}
-        else if(error){return false}
+        const {data, error} = await supabaseAdminClient.from('EventGoBusinesses').select().eq('ID', this.attributes.ID)
+        //console.log(data, error)
+        if(data != null && data != undefined && data.length > 0){return true}
+        else if(error == null || error == undefined){return false}
     }
 
     async CreateShow(attributes){
-        if(this.Exists() == false){return false}
+        if(await this.Exists() == false){return false}
         attributes.ID = this.attributes.ID
         let show = new Show(attributes)
         let response = await show.Create()
         console.log(response)
     }
 
+    async Show(attributes){
+        let value = await this.Exists()
+        console.log(value, " Show() thing")
+        if(value == false || value == null){return false}
+
+        attributes.ID = this.attributes.ID
+        var show = new Show(attributes)
+        return show;
+    }
+
     GetNetProfit(){return this.attributes.NetProfit}
     GetName(){return this.attributes.Name}
     GetAddress(){return this.attributes.Address}
 }
+
+
+async function test3(){
+    let details = {
+                ID:'636da2d2-4167-4109-badc-664536a23799',
+                Name:'GTA Productions',
+                Address:'555 Claire Ave, Vista, CA 91912',
+                NetProfit:9000
+    }
+
+    let business = new EventGoBusiness(details)
+    //return false
+    
+    if(await business.Exists() == false){
+        console.log (await business.Create(), " BUSINESSS");
+    }
+ 
+    let show_details = {
+        ID:null,
+        CreatedAt:null,
+        ShowName:'La Holla Chills',
+        HostDate:null,
+        EndDate:null,
+        StartTime:null,
+        EndTime:null,
+        Venue:'Universe, Multimilk, IDK',
+        BusinessOwner:12941249124,
+        SeatsArranged:5,
+        Category:'Horror',
+        ShowType:'Useless',
+        HostedBy:'Amazon'
+    }
+    
+    var bs_show = await business.Show(show_details)
+    console.log(bs_show, " show status")
+    let val = await bs_show.Create()
+    console.log(val, " value")
+    
+    let ticket_details = {
+        ID:null,
+        CreatedAt:6,
+        Price:4444,
+        Onsale:null,
+        Refundable:null,
+        Confirmed:null,
+        BusinessOwnerID:null,
+        CustomerID:null,
+        ShowName:null
+}
+
+    let ticket = await bs_show.Ticket(ticket_details)
+    let val2 = await ticket.Create();
+    console.log(val2, " ticket status")
+}
+
+
+async function BuyTicketFor(user_email, pass){
+    let data = await supabaseAdminClient.auth.signInWithPassword({email:user_email, password:pass})
+    data = data.data
+    let uuid = data.user.id
+    let access_token = data.session.access_token
+    console.log(data.user)
+    let user = new EventGoUser({
+        UserID:uuid,
+        Email:data.user.email,
+        Password:null,
+        Address:null
+    })
+
+    let response = await user.BuyTicket({
+        ID:'636da2d2-4167-4109-badc-664536a23799',
+        CreatedAt:6543,
+        Price:1000,
+        Onsale:null,
+        Refundable:null,
+        Confirmed:null,
+        BusinessOwnerID:192385123,
+        CustomerID:12495824123,
+        ShowName:null});
+}
+//test3()
+BuyTicketFor("Random@gmail.com", "random")
 
 
 export class SupabaseUser extends BaseEntity{
@@ -347,7 +499,7 @@ export class EventGoUser{
     constructor(attributes=null){
 
         this._supabase_user = null;
-        this.list = ['UserID', 'Address', 'Email', 'SupabaseUserID', 'Password']
+        this.list = ['UserID', 'Address', 'Email', 'Password']
 
         if(attributes !== null){
             this.attributes = attributes
@@ -357,7 +509,6 @@ export class EventGoUser{
                 UserID:null,
                 Address:null,
                 Email:null,
-                SupabaseUserID:null,
                 Password:null
             }
         }
@@ -378,32 +529,22 @@ export class EventGoUser{
     async Create(){
         //Since someone wants to create user with specific user id we will run this
         //if(this.__verify_attributes(this.attributes) == false){return EntityNotCreated}
-        const{data, error} = await supabaseClient.from('EventGoUsers').insert(this.attributes)
-        if(data){
-            console.log("Yes", data)
-            return EntityCreated
-        }
-        else if(error){
-            console.log("No", error)
-            return EntityNotCreated
-        }
+        const{error} = await supabaseClient.from('EventGoUsers').insert(this.attributes)
+        if(error)return false;
+        return true;
     }
 
     async Delete(){
         if(this.__verify_attributes(this.attributes) == false){return EntityNotDeleted}
-        const {data, error} = await supabaseClient.from('EventGoUsers').delete().eq('UserID', this.attributes['UserID'])
-        if(data){
-            console.log(data)
-            return EntityDeleted}
-        else if(error){
-            console.log(error)
-            return EntityNotDeleted}
+        const response = await supabaseClient.from('EventGoUsers').delete().eq('UserID', this.attributes['UserID'])
+        if(response) return false
+        return true;
     }
 
     async Update(){
-        let {data, error} = await supabaseAdminClient.from('EventGoUsers').update(this.attributes).eq('UserID', this.attributes.UserID)
-        if(data)return true;
-        else if(error)return false;
+        let {error} = await supabaseAdminClient.from('EventGoUsers').update(this.attributes).eq('UserID', this.attributes.UserID)
+        if(error)return false;
+        else return true;
     }
 
     async Exists(){
@@ -413,11 +554,37 @@ export class EventGoUser{
     }
 
     async BuyTicket(ticket_details){
-        ticket_details.CustomerID = this.attributes.ID
+        /**
+         * {
+        ID:'636da2d2-4167-4109-badc-664536a23799',
+        CreatedAt:6543,
+        Price:1000,
+        Onsale:null,
+        Refundable:null,
+        Confirmed:null,
+        BusinessOwnerID:192385123,
+        CustomerID:12495824123,
+        ShowName:null}
+         */
+        let ticket = new Ticket(ticket_details)
+        //let synchronized = await ticket.Synchronize()
+        let value = await ticket.GetAvailableTicket()
+        ticket_details = ticket.Attributes()
+        ticket_details.CustomerID = this.attributes.UserID
         ticket_details.Onsale = false;
         ticket_details.Confirmed = true;
-        let ticket = new Ticket(ticket_details)
+        ticket.SetAttributes(ticket_details)
         var success = await ticket.Update()
+
+        //Create transaction as well for the purchase
+        let transaction = await ticket.Transaction()
+        let val = await transaction.Create();
+        if(val == true){
+            console.log("transaction after purchase generated")
+        }
+        else{
+            console.log("couldn't generate transaction after purchase")
+        }
         return success
     }
 }
@@ -425,19 +592,20 @@ export class EventGoUser{
 
 async function test2(){
     let details = {
-        UserID:1,
-        Address:"750 3rd Ave, Chula Vista, CA 91912",
+        UserID:'636da2d2-4167-4109-badc-664536a23799',
+        Address:"750 3rd Ave, Chula Vista, CA 0000",
         Email:"yashaswi.kul@gmail.com",
         SupabaseUserID:"random_id",
         Password:"yash18hema06"
     }
-    let evuser = new EventGoUser()
-
-    evuser.SetAttributes(details)
+    let evuser = new EventGoUser(details)
+    let val = await evuser.Update();
+    console.log(val)
+    //evuser.SetAttributes(details)
     let resp = await evuser.BuyTicket({
-                ID:null,
+                ID:1,
                 CreatedAt:6543,
-                Price:1000,
+                Price:67,
                 Onsale:true,
                 Refundable:false,
                 Confirmed:false,
@@ -449,7 +617,7 @@ async function test2(){
     console.log(resp)
 }
 
-//test2();
+
 export class CombinedUser extends BaseEntity{
     /*This class is meant to represent the entire USER combining two tables. It doesn't work just yet but it will in future*/
     constructor(attributes=null){
