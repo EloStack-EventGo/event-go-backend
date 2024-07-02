@@ -185,6 +185,7 @@ export class Show extends BaseEntity{
         this.attributes = attributes
         if(attributes === null){
             this.attributes = {
+                ShowID:null,
                 ID:null,
                 CreatedAt:null,
                 ShowName:null,
@@ -229,7 +230,7 @@ export class Show extends BaseEntity{
     }
 
     async CreateTicket(attributes){
-        if(await this.Exists() == false){console.log("CreateTicket()!!");return false}
+        if(await this.Exists() == false){return false}
 
         attributes.ID = this.attributes.ID
         attributes.BusinessOwnerID = this.attributes.ID
@@ -255,6 +256,22 @@ export class Show extends BaseEntity{
         attributes.Confirmed = false;
         var ticket = new Ticket(attributes)
         return ticket
+    }
+
+    async __synchronize_with_database_entry(){
+        let{data, error} = await supabaseAdminClient.from('Shows').select()
+        .eq('ID', this.attributes.ID).eq('ShowID', this.attributes.ShowID)
+
+        if(data != null && data != undefined && data.length > 0){
+            this.attributes = data[0]
+            return true;
+        }
+        return false;
+    }
+
+    async Synchronize(){
+        let value = await this.__synchronize_with_database_entry()
+        return value
     }
 }
 
@@ -324,6 +341,21 @@ export class EventGoBusiness extends BaseEntity{
     GetNetProfit(){return this.attributes.NetProfit}
     GetName(){return this.attributes.Name}
     GetAddress(){return this.attributes.Address}
+
+    async __synchronize_with_database_entry(){
+        let{data, error} = await supabaseAdminClient.from('EventGoBusinesses').select().eq('ID', this.attributes.ID)
+
+        if(data != null & data != undefined && data.length > 0){
+            this.attributes = data[0]
+            return true;
+        }
+        return false;
+    }
+
+    async Synchronize(){
+        let success = await this.__synchronize_with_database_entry()
+        return success
+    }
 }
 
 export class SupabaseUser extends BaseEntity{
@@ -420,19 +452,21 @@ export class EventGoUser{
         //Since someone wants to create user with specific user id we will run this
         //if(this.__verify_attributes(this.attributes) == false){return EntityNotCreated}
         const{error} = await supabaseClient.from('EventGoUsers').insert(this.attributes)
+        console.log(error, "EventGoUser Create()")
         if(error)return false;
         return true;
     }
 
     async Delete(){
-        if(this.__verify_attributes(this.attributes) == false){return EntityNotDeleted}
-        const response = await supabaseClient.from('EventGoUsers').delete().eq('UserID', this.attributes['UserID'])
-        if(response) return false
-        return true;
+        const response = await supabaseClient.from('EventGoUsers').delete().eq('UserID', this.attributes.UserID)
+        console.log(response, "EventGoUser Delete()")
+        if(response.error == null || response.error == undefined) return true
+        return false;
     }
 
     async Update(){
         let {error} = await supabaseAdminClient.from('EventGoUsers').update(this.attributes).eq('UserID', this.attributes.UserID)
+        console.log(error, "EventGoUser Update()")
         if(error)return false;
         else return true;
     }
@@ -470,8 +504,35 @@ export class EventGoUser{
         }
         return success
     }
-}
 
+    async __synchronize_with_database_entry(){
+        let{data, error} = await supabaseAdminClient.from('EventGoUsers').select()
+        .eq('UserID', this.attributes.UserID)
+
+        if(data != undefined && data != null && data.length > 0){
+            this.attributes = data[0]
+            return true;
+        }
+        return false;
+    }
+
+    async Synchronize(){
+        let success = await this.__synchronize_with_database_entry
+        return success
+    }
+
+    async GetUserByEmailAndPass(){
+        let {data, error}= await supabaseAdminClient.from('EventGoUsers').select()
+        .eq('Email', this.attributes.Email).eq('Password', this.attributes.Password)
+
+        if(data != null && data != undefined && data.length > 0){
+            this.attributes = data[0]
+            return true;
+        }
+
+        return false;
+    }
+}
 
 
 

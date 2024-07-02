@@ -28,7 +28,6 @@ async function test2(){
     console.log(resp)
 }
 
-
 async function test(){
     let t = new Show({
         ID:1,

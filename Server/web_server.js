@@ -1,6 +1,6 @@
 //import {} from '../Database/schema.js';
 import {EventGoDatabase } from '../Database/database.js';
-import{ServerResponse} from './utility.js'
+import{GetUserByEmailAndPass, ServerResponse} from './utility.js'
 import {ExpressServer} from './express_app.js';
 
 //Database instance for EventGo database
@@ -18,6 +18,7 @@ function CheckEmailAndPass(email, pass){
 }
 
 
+
 /*********************************************************************EVENT GO WEB SERVER FUNCTIONS*****************************************************************/
 expressServer.app().get("/", Root)
 function Root(req, res){
@@ -25,6 +26,8 @@ function Root(req, res){
 }
 
 
+
+ /* UTILITY ROUTES */
 expressServer.app().get("/login", Login)
 async function Login(req, res){    
     let response = await database.supabase_client().auth.signInWithPassword(req.query)
@@ -72,26 +75,6 @@ async function SignUp(req, res){
 }
 
 
-expressServer.app().get('/createUser', CreateUser)
-async function CreateUser(req, res){
-    let email = req.query.email
-    let password = req.query.password
-    
-    let details = {
-        UserID:req.query.userid,
-        Address:req.query.address,
-        Email:email,
-        SupabaseUserID:req.query.supabaseuserid,
-        Password:password
-    }
-
-    let response = await database.eventgo_schema().EventGoUser(details).Create();
-
-    console.log(response)
-    if(response != false){console.log("created user successfully"); res.send("created user successfully")}
-    else{console.log("couldn't create user"); res.send("couldn't create user")}
-}
-
 expressServer.app().get('/confirmation', Confirmation)
 async function Confirmation(req, res){
     console.log(req, "/confirmation route:  Confirmation recieved")
@@ -105,13 +88,122 @@ async function Confirmation(req, res){
 }
 
 
-expressServer.app().get('/createEvent', HostShow)
-function HostShow(req, res){
-    res.send("Endpoint works but no functionality yet")
+
+
+                        /*****************************DATABASE ENTITY MANAGEMENT ROUTES****************************/
+    
+
+/* USER ACCOUNT ENTITY  ROUTE */
+expressServer.app().get('/createUser', CreateUser)
+async function CreateUser(req, res){
+    let email = req.query.email
+    let password = req.query.password
+    
+    let details = {
+        UserID:req.query.userid,
+        Address:req.query.address,
+        Email:email,
+        Password:password
+    }
+
+    let response = await database.eventgo_schema().EventGoUser(details).Create();
+
+    console.log(response)
+    if(response != false){console.log("created user successfully"); res.send("created user successfully")}
+    else{console.log("couldn't create user"); res.send("couldn't create user")}
 }
 
-expressServer.app().get("/createTicket", CreateTicket)
+
+expressServer.app().get('/deleteUser/EmailAndPass', DeleteUser)
+async function DeleteUser(req, res){
+    let email = req.query.email
+    let password = req.query.password
+   
+    let user = await database.eventgo_schema().EventGoUser({Email:email, Password:password})
+    let success = await user.GetUserByEmailAndPass()
+    if(success == false){res.send("No user to delete"); return false}
+
+    let exists = await user.Exists();
+
+    if(exists == true){
+        let response = await user.Delete();
+        if(response == true){res.send("User deleted")}
+        else{res.send("Couldn't delete user")}
+        return;
+    }
+    res.send("User already doesn't exist to delete")
+}
+
+expressServer.app().get('/deleteUser/AccessToken', DeleteUserWithAccessToken)
+async function DeleteUserWithAccessToken(req, res){
+    let access_token = req.query.access_token
+    let user_data = await database.supabase_client().auth.getUser(access_token)
+   
+    user_data = user_data.data.user
+    console.log(user_data)
+    let user = await database.eventgo_schema().EventGoUser({UserID:user_data.id})
+    await user.Synchronize()
+
+    let response = await user.Delete();
+
+    if(response == true){res.send("User deleted")}
+    else{res.send("Couldn't delete user")}
+}
+
+
+expressServer.app().get('/updateUser', UpdateUser)
+async function UpdateUser(req, res){
+    let data = {Email:req.query.email, Password:req.query.pass, Address:req.query.address,  UserID:req.query.userid}
+    let success = await database.eventgo_schema().EventGoUser(data).Update()
+    if(success){res.send("User updated"); return true;}
+    res.send("Couldn't update user")
+}
+
+
+
+/* BUSINESS ACCOUNT ENTITY ROUTE*/
+expressServer.app().get('/createBusiness/EmailAndPass', CreateBusiness)
+async function CreateBusiness(req, res){
+    //note not working, because 
+    console.log(req.body) // this is undefined
+    let success = await database.eventgo_schema().SupaUser(req.body.supa_user).Create();
+    req.body.eventgo_user.userid = success.data.user.id
+    eventgo = req.body.eventgo_user
+    let data = {Email:eventgo.email, Password:eventgo.password, Address:eventgo.address,  UserID:eventgo.userid}
+
+    let busi = req.body.business
+    busi.ID = eventgo.userid
+    let success1 = await database.eventgo_schema().EventGoUser(data).Create();
+    let success2 = await database.eventgo_schema().Business(req.body.business).Create();
+
+    res.send(String(success + success1 + success2)+" entities created")
+
+}
+
+expressServer.app().get('/createBusiness/LinkToAccount', LinkAndCreateBusiness)
+async function LinkAndCreateBusiness(req, res){
+    let success = await database.eventgo_schema().Business(req.query).Create();
+    
+}   
+
+
+/* TICKET ENTITY ROUTE */
+expressServer.app().get('/createTicket', CreateTicket)
 async function CreateTicket(req, res){
+    let show = await database.eventgo_schema().Show(req.body.show)
+    let success = await show.Synchronize();
+
+    if(success == false){
+        let exists = await show.Exists();
+        if(exists == false){res.send("In order to create ticket A Show needs to be hosted"); return false}
+    }
+
+    let ticket = await show.Ticket(req.body.ticket)
+    let ticket_success = await ticket.Create();
+
+    if(ticket_success == true){res.send("Ticket created successfullyy"); return true}
+    res.send("Couldn't Create ticket")
+    return false;
 }
 
 expressServer.app().get("/buyTicket", BuyTicket)
@@ -141,6 +233,43 @@ async function BuyTicket(){
     }
     res.send("couldn't extract sesion and user")
 }
+
+
+/* SHOW ENTITY ROUTE */
+expressServer.app().get('/createShow', CreateShow)
+async function CreateShow(){
+    //Create business object
+    let business = await database.eventgo_schema().Business(req.body.business)
+    let busi_exists = await business.Exists();
+
+    //If business account doesn't exist then don't proceed further
+    if(busi_exists == false){res.send("Business Account is required to create or host shows"); return false;}
+
+    //Synchronize data between object and the database entry
+    let synced = await business.Synchronize()
+    console.log("EventGoBusiness Object synchronized")
+
+    //Create show object 
+    let show = await database.eventgo_schema().Show(req.body.show)
+    let show_exists = await show.Exists();
+
+    //If show already doesn't exist then create the show
+    let success = null
+    if(show_exists == false){success = await show.Create();}
+
+    else{res.send("Show already exists")}
+
+    if(success){res.send("Show has been created"); console.log("Show has been created"); return true}
+    res.send("Couldn't create show");
+    console.log("Couldn't create show")
+
+    return false;
+}
+
+
+/* TRANSACTION ENTITY ROUTE */
+
+
 
 
 /*****Starting the Webserver******/

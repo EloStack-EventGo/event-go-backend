@@ -1,3 +1,5 @@
+import { supabaseAdminClient } from "../Database/schema.js";
+
 //Response wrapper for the server
 export class ServerResponse{
     constructor(message){
@@ -38,4 +40,15 @@ export class UserSession{
     data(){
         return this.session
     }
+}
+
+
+export async function GetUserByEmailAndPass(email, pass){
+    let {data, error} = await supabaseAdminClient.auth.signInWithPassword({email:email, password:pass})
+    return data.user
+}
+
+export async function GetUserSessionByEmailAndPass(email, pass){
+    let {data, error} = await supabaseAdminClient.auth.signInWithPassword({email:email, password:pass})
+    return data.data.session
 }

@@ -54,6 +54,5 @@ let user = new SupabaseUser({
 })
 
 
-user.Create();
 
-//signup_user("yashaswi.kul@gmail.com", "yash18hema06");
+signup_user("yashaswi.kul@gmail.com", "yash18hema06");
