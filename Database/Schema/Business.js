@@ -27,7 +27,7 @@ export class EventGoBusiness extends BaseEntity{
     async Delete(){
         if(await this.Exists() == false){return false}
         let response = await supabaseAdminClient.from('EventGoBusinesses').delete().eq('ID', this.attributes.ID)
-        console.log(response)
+        console.log(response, "Business Class Delete() tracer")
         if(response){return false}
         else{return true}
     }
@@ -35,7 +35,7 @@ export class EventGoBusiness extends BaseEntity{
     async Update(){
         if(await this.Exists() == false){return false}
         let{error} = await supabaseAdminClient.from('EventGoBusinesses').update(this.attributes).eq('ID', this.attributes.ID)
-        console.log(error)
+        console.log(error, "Business Class Update() Tracer")
         if(error){return true}
         else if(error){return false}
     }

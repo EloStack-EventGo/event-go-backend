@@ -31,19 +31,21 @@ export class Transaction extends BaseEntity{
     async Delete(){
         let response = await supabaseAdminClient.from('Transactions').delete().eq('ID', this.attributes.ID)
         console.log(response, "Class Transaction: Delete() tracer")
-        if(response){return false}
-        else{return true}
+        let error = response.error
+        if(error != undefined && error != null){return true}
+        return false;
     }
 
     async Update(){
         let {error} = await supabaseAdminClient.from('Transactions').update(this.attributes).eq('ID', this.attributes.ID)
+        console.log(error, "Class Transaction Update() tracer")
         if(error)return false;
         else return true;
     }
 
     async Exists(){
         let{data, error} = await supabaseAdminClient.from('Transactions').select().eq('ID', this.attributes.ID)
-        if(data)return true;
-        else if(error)return false;
+        if(data != null && data != undefined && data.length > 0){return true}
+        else {return false}
     }
 }

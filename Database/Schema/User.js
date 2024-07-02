@@ -40,8 +40,8 @@ export class SupabaseUser extends BaseEntity{
     async Delete(){
         let{data, error} = await supabaseAdminClient.auth.admin.deleteUser(this.attributes.ID)
         console.log(data, error, "Class SupabaseUser: Delete() tracer")
-        if(data){return false}
-        else if(error){return false}
+        if(error != undefined && error != null){return true}
+        return false;
     }
 
     async Update(){
@@ -53,8 +53,8 @@ export class SupabaseUser extends BaseEntity{
 
     async Exists(){
         let{data, error} = await supabaseAdminClient.auth.admin.getUserById(this.attributes.ID)
-        if(data)return true;
-        else if(error)return false;
+        if(data != null && data != undefined && data.length > 0){return true}
+        else {return false}
     }
 
 }
@@ -93,30 +93,35 @@ export class EventGoUser{
     }   
 
     async Create(){
-        //Since someone wants to create user with specific user id we will run this
         //if(this.__verify_attributes(this.attributes) == false){return EntityNotCreated}
-        const{error} = await supabaseClient.from('EventGoUsers').insert(this.attributes)
+        const{data, error} = await supabaseClient.from('EventGoUsers').insert(this.attributes)
+        console.log(error, "EventGoUser Class Create() Tracer")
         if(error)return false;
         return true;
     }
 
     async Delete(){
-        if(this.__verify_attributes(this.attributes) == false){return EntityNotDeleted}
+        //if(this.__verify_attributes(this.attributes) == false){return EntityNotDeleted}
         const response = await supabaseClient.from('EventGoUsers').delete().eq('UserID', this.attributes['UserID'])
-        if(response) return false
-        return true;
+        console.log(response, "EventGoUser Class Delete() tracer")
+        let error = response.error
+        if(error != undefined && error != null){return true}
+        return false;
     }
 
     async Update(){
         let {error} = await supabaseAdminClient.from('EventGoUsers').update(this.attributes).eq('UserID', this.attributes.UserID)
-        if(error)return false;
-        else return true;
+        console.log(error, "EventGoUser Class Update() Tracer")
+        if(error){console.log(false); return false;}
+        else{console.log(true); return true;}
+       
     }
 
     async Exists(){
         let {data, error} = await supabaseAdminClient.from('EventGoUsers').select().eq('UserID', this.attributes.UserID)
-        if(data)return true;
-        else if(error)return false;
+        console.log(data, error, " EventGoUser Class Exists() Tracer")
+        if(data != null && data != undefined && data.length > 0){return true}
+        else {return false}
     }
 
     async BuyTicket(ticket_details){
@@ -167,6 +172,6 @@ export class CombinedUser extends BaseEntity{
         let response2 = await this.EventGoUser().Create();
     }
     async Exists(){
-        return this.SupaUser().Exists() && this.EventGoUser().Exists();
+        return await this.SupaUser().Exists() && await this.EventGoUser().Exists();
     }
 }

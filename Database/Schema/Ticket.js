@@ -68,8 +68,8 @@ export class Ticket extends BaseEntity{
 
     async Exists(){
         let{data, error} = await supabaseAdminClient.from('Tickets').select().eq('ID', this.attributes.ID)
-        if(data)return true;
-        else if(error) return false;
+        if(data != null && data != undefined && data.length > 0){return true}
+        else {return false}
     }
 
     async __synchronize_with_database_entry(){
