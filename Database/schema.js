@@ -287,7 +287,7 @@ export class EventGoBusiness extends BaseEntity{
         let response = await supabaseAdminClient.from('EventGoBusinesses').delete().eq('ID', this.attributes.ID)
         console.log(response, "EventGoBusiness Delete() tracer")
         if(response.error == null || response.error == undefined){console.log("Delete():", true);return true}
-        console.log("Update():", false);
+        console.log("Delete():", false);
         return false;
     }
     
@@ -344,7 +344,7 @@ export class SupabaseUser extends BaseEntity{
             this.redirect_url = null;
             if(this.attributes !== null){
                 this.attributes={
-                    email:attributes['email'], password:attributes['password'],
+                    email:attributes['email'], password:attributes['password'],id:attributes.ID
                 }
             }
             
@@ -353,6 +353,7 @@ export class SupabaseUser extends BaseEntity{
                 this.attributes={
                     email:null,
                     password:null,
+                    id:null
                 }
             }
         }
@@ -373,26 +374,39 @@ export class SupabaseUser extends BaseEntity{
     }
 
     async Delete(){
-        let{data, error} = await supabaseAdminClient.auth.admin.deleteUser(this.attributes.ID)
+        let{data, error} = await supabaseAdminClient.auth.admin.deleteUser(this.attributes.id)
         console.log(data, error, "Class SupabaseUser: Delete() tracer")
         if(data){return false}
         else if(error){return false}
     }
 
     async Update(){
-        let{data, error} = await supabaseAdminClient.auth.updateUser(this.attributes)
+        let{data, error} = await supabaseAdminClient.auth.updateUser(this.attributes.id)
         console.log(data, error, "Class SupabaseUser: Update() tracer")
         if(data)return true;
         else if(error)return false;
     }
 
     async Exists(){
-        let{data, error} = await supabaseAdminClient.auth.admin.getUserById(this.attributes.ID)
-        if(data)return true;
-        else if(error)return false;
+        let{data, error} = await supabaseAdminClient.auth.admin.getUserById(this.attributes.id)
+        console.log(data, error, "SupabaseUser Class Exists() Tracer")
+        if(data != null && data != undefined){console.log("Exists():",true);return true}
+        else {console.log("Exists():",false); return false}
     }
 
-}
+    async __synchronize_with_database_row(){
+        let{data, error} = await supabaseAdminClient.auth.admin.getUserById(this.attributes.id)
+        if(data != null && data != undefined && data.length > 0){
+            this.attributes = data.data
+            return true
+        }
+    }
+
+    async Synchronize(){
+        let value = await this.__synchronize_with_database_row()
+        return value;
+    }
+}   
 
 
 export class EventGoUser{
@@ -430,16 +444,17 @@ export class EventGoUser{
     async Create(){
         //if(this.__verify_attributes(this.attributes) == false){return EntityNotCreated}
         const{data, error} = await supabaseClient.from('EventGoUsers').insert(this.attributes)
-        console.log(error, "EventGoUser Create()")
-        if(error){console.log(false);return false;}
-        console.log(true);
+        console.log(error, "EventGoUser Create() tracer")
+        if(error){console.log("Create():",false);return false;}
+        console.log("Create():",true);
         return true;
     }
 
     async Delete(){
         const response = await supabaseClient.from('EventGoUsers').delete().eq('UserID', this.attributes.UserID)
-        console.log(response, "EventGoUser Delete()")
-        if(response.error == null || response.error == undefined) return true
+        console.log(response, "EventGoUser Delete() tracer")
+        if(response.error == null || response.error == undefined){console.log("Delete():",true); return true}
+        console.log("Delete():", false);
         return false;
     }
 
@@ -449,14 +464,15 @@ export class EventGoUser{
 
         let {data, error} = await supabaseAdminClient.from('EventGoUsers').update(this.attributes).eq('UserID', this.attributes.UserID)
         console.log(data, error, "EventGoUser Class Update() Tracer")
-        if(error){console.log(false); return false;}
-        else{console.log(true); return true;}
+        if(error){console.log("Update():",false); return false;}
+        else{console.log("Update():",true); return true;}
     }
 
     async Exists(){
         let {data, error} = await supabaseAdminClient.from('EventGoUsers').select().eq('UserID', this.attributes.UserID)
-        if(data != null && data != undefined && data.length > 0){return true}
-        else {return false}
+        console.log(data, error, "EventGoUser Class Exists() Tracer")
+        if(data != null && data != undefined && data.length > 0){console.log("Exists():",true);return true}
+        else {console.log("Exists():",false); return false}
     }
 
     async BuyTicket(ticket_details){
