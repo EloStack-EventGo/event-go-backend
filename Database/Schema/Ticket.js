@@ -1,8 +1,9 @@
 import { BaseEntity } from "./BaseEntity.js";
 import { Transaction } from "./Transaction.js";
+import { supabaseAdminClient, supabaseClient } from "./Supabase.js";
 
 export class Ticket extends BaseEntity{
-
+    //looks good
     constructor(attributes=null){
         super();
         this.attributes = attributes
@@ -16,19 +17,11 @@ export class Ticket extends BaseEntity{
                 Confirmed:null,
                 BusinessOwnerID:null,
                 CustomerID:null,
-                ShowName:null
+                ShowName:null,
+                TicketID:null
             }
         }
         console.log(this.attributes, " CLass Ticket:")
-    }
-
-    async GenerateTransaction(attributes){
-        attributes.ID = this.attributes.ID
-        attributes.PaymentBy = this.attributes.CustomerID
-        attributes.PaymentTo = this.attributes.BusinessOwnerID
-        this.Amount = this.Price
-        let transaction = new Transaction(attributes)
-        var success = await transaction.Create();
     }
     
     async Transaction(){
@@ -47,34 +40,40 @@ export class Ticket extends BaseEntity{
 
     async Create(){
         let{error} = await supabaseAdminClient.schema('public').from('Tickets').insert(this.attributes)
-        console.log(error)
-        if(error){return false}
-        else{return true}
+        console.log(error, "Class Ticker Create() tracer");
+        if(error){console.log("Create():", false); return false}
+        else{console.log("Create():", false); return true}
     }
 
     async Delete(){
-        let response = await supabaseAdminClient.fron('Tickets').delete().eq('ID', this.attributes.ID)
-        console.log(response)
-        if(response){return true}
-        else{return false}
+        let response = await supabaseAdminClient.fron('Tickets').delete()
+        .eq('ID', this.attributes.ID).eq('TicketID', this.attributes.TicketID)
+        console.log(response, "Class Ticker Delete() tracer");
+        if(response.error == null || response.error == undefined){console.log("Delete():", true);return true}
+        console.log("Delete()", false)
+        return false;
     }
 
     async Update(){
-        let {error} = await supabaseAdminClient.from('Tickets').update(this.attributes).eq('ID', this.attributes.ID)
-        console.log(error, " Class Ticket: Updated()")
-        if(error){return false}
-        else{return true;}
+        let {error} = await supabaseAdminClient.from('Tickets').update(this.attributes)
+        .eq('ID', this.attributes.ID).eq('TicketID', this.attributes.TicketID)
+        console.log(error, "Class Ticker Update() tracer");
+        if(error){console.log("Update():", false); return false}
+        else{console.log("Update():", true); return true;}
     }
 
     async Exists(){
-        let{data, error} = await supabaseAdminClient.from('Tickets').select().eq('ID', this.attributes.ID)
-        if(data != null && data != undefined && data.length > 0){return true}
-        else {return false}
+        let{data, error} = await supabaseAdminClient.from('Tickets').select()
+        .eq('ID', this.attributes.ID).eq('TicketID', this.attributes.TicketID)
+        console.log(error, "Class Ticker Exists() tracer");
+        if(data != null && data != undefined && data.length > 0){console.log("Exists(): ", true); return true}
+        else {console.log("Exists():", false); return false}
     }
 
-    async __synchronize_with_database_entry(){
+    async __synchronize_with_database_row(){
         //Synchronizes the attribute in the database within the object. Then same attributes can be accessed
-        let{data, error} = await supabaseAdminClient.from('Tickets').select().eq('ID', this.attributes.ID)
+        let{data, error} = await supabaseAdminClient.from('Tickets').select()
+        .eq('ID', this.attributes.ID).eq('TicketID', this.attributes.TicketID)
         if(data != undefined && data != null){
             this.attributes = data[0]
             console.log("Ticket successfully synchronized")
@@ -90,7 +89,7 @@ export class Ticket extends BaseEntity{
 
     async Synchronize(){
         //Synchronization wrapper for external use
-        let success = await this.__synchronize_with_database_entry()
+        let success = await this.__synchronize_with_database_row()
         return success;
     }
 
@@ -98,7 +97,7 @@ export class Ticket extends BaseEntity{
         let{data, error} = await supabaseAdminClient.from('Tickets').select()
         .eq('ID', this.attributes.ID)
         .eq('Onsale', true)
-        if(data != undefined && data != null){
+        if(data != undefined && data != null && data.length > 0){
             this.attributes = data[0]
             return true;
         }

@@ -3,7 +3,7 @@ import { EventGoBusiness } from "./Business.js";
 import { Show } from "./Show.js";
 import { Ticket } from "./Ticket.js";
 import { Transaction } from "./Transaction.js";
-import { SupabaseUser, EventGoUser, CombinedUser} from "./User";
+import { SupabaseUser, EventGoUser, CombinedUser} from "./User.js";
 import { BaseEntity } from "./BaseEntity.js";
 
 

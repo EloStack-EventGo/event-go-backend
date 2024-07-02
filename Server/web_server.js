@@ -113,7 +113,7 @@ async function CreateUser(req, res){
     else{console.log("couldn't create user"); res.send("couldn't create user")}
 }
 
-
+expressServer.app().get('/deleteUser', DeleteUser)
 expressServer.app().get('/deleteUser/EmailAndPass', DeleteUser)
 async function DeleteUser(req, res){
     let email = req.query.email
