@@ -193,40 +193,6 @@ export class Show extends BaseEntity{
 
 }
 
-async function test(){
-    let t = new Show({
-        ID:1,
-        CreatedAt:null,
-        ShowName:'GTA5 7612 Vice City',
-        HostDate:null,
-        EndDate:null,
-        StartTime:null,
-        EndTime:null,
-        Venue:'Los Angeles, CA',
-        BusinessOwner:12941249124,
-        SeatsArranged:5,
-        Category:'Gaming',
-        ShowType:'Useless',
-        HostedBy:'Netflix'
-    })
-    
-    //let resp = await t.Create()
-    let resp = await t.CreateTicket({
-                ID:null,
-                CreatedAt:6543,
-                Price:1000,
-                Onsale:null,
-                Refundable:null,
-                Confirmed:null,
-                BusinessOwnerID:192385123,
-                CustomerID:12495824123,
-                ShowName:null
-    })
-    console.log(resp)
-}
-
-
-
 export class EventGoBusiness extends BaseEntity{
 
     constructor(attributes=null){
@@ -244,23 +210,26 @@ export class EventGoBusiness extends BaseEntity{
     }
 
     async Create(){
-        let{data, error} = await supabaseAdminClient.from('EventGoBusinesses').insert(this.attributes)
-        console.log(data, error)
-        if(data){return true}
-        else if(error){return false}
+        let{error} = await supabaseAdminClient.from('EventGoBusinesses').insert(this.attributes)
+        console.log(error)
+        if(error){return false}
+        else {return true}
     }
+    
     async Delete(){
-        let{data, error} = await supabaseAdminClient.from('EventGoBusinesses').delete().eq('ID', this.attributes.ID)
-        console.log(data, error)
-        if(data){return true}
-        else if(error){return false}
+        let response = await supabaseAdminClient.from('EventGoBusinesses').delete().eq('ID', this.attributes.ID)
+        console.log(response)
+        if(response){return false}
+        else{return true}
     }
+    
     async Update(){
-        let{data, error} = await supabaseAdminClient.from('EventGoBusinesses').update(this.attributes).eq('ID', this.attributes.ID)
-        console.log(data, error)
-        if(data){return true}
+        let{error} = await supabaseAdminClient.from('EventGoBusinesses').update(this.attributes).eq('ID', this.attributes.ID)
+        console.log(error)
+        if(error){return true}
         else if(error){return false}
     }
+
     async Exists(){
         let{data, error} = await supabaseAdminClient.from('EventGoBusinesses').select().eq('ID', this.attributes.ID)
         console.log(data, error)
@@ -295,7 +264,7 @@ export class SupabaseUser extends BaseEntity{
             }
             
             else{
-                console.log("supabase useR: else")
+                console.log("supabase user: else")
                 this.attributes={
                     email:null,
                     password:null,
@@ -340,6 +309,39 @@ export class SupabaseUser extends BaseEntity{
 
 }
 
+
+async function test(){
+    let t = new Show({
+        ID:1,
+        CreatedAt:null,
+        ShowName:'GTA5 7612 Vice City',
+        HostDate:null,
+        EndDate:null,
+        StartTime:null,
+        EndTime:null,
+        Venue:'Los Angeles, CA',
+        BusinessOwner:12941249124,
+        SeatsArranged:5,
+        Category:'Gaming',
+        ShowType:'Useless',
+        HostedBy:'Netflix'
+    })
+    
+    //let resp = await t.Create()
+    let resp = await t.CreateTicket({
+                ID:null,
+                CreatedAt:6543,
+                Price:1000,
+                Onsale:null,
+                Refundable:null,
+                Confirmed:null,
+                BusinessOwnerID:192385123,
+                CustomerID:12495824123,
+                ShowName:null
+    })
+    console.log(resp)
+}
+
 export class EventGoUser{
 
     constructor(attributes=null){
@@ -352,11 +354,11 @@ export class EventGoUser{
         }
         else{
             this.attributes = {
-                'UserID':null,
-                'Address':null,
-                'Email':null,
-                'SupabaseUserID':null,
-                'Password':null
+                UserID:null,
+                Address:null,
+                Email:null,
+                SupabaseUserID:null,
+                Password:null
             }
         }
     }
@@ -371,7 +373,7 @@ export class EventGoUser{
             catch(e){}
         }
         return true;
-    }
+    }   
 
     async Create(){
         //Since someone wants to create user with specific user id we will run this
@@ -412,7 +414,7 @@ export class EventGoUser{
 
     async BuyTicket(BusinessID){
         let{data, error} = await supabaseAdminClient.from('Tickets').select('ID').eq('ID', BusinessID)
-        data.PaymentBy = this.attributes.ID
+        data.CustomerID = this.attributes.ID
         data.Onsale = false;
         data.Confirmed = true;
         var ticket = new Ticket(data)
@@ -421,6 +423,34 @@ export class EventGoUser{
     }
 }
 
+
+async function test2(){
+    let details = {
+        UserID:1,
+        Address:"750 3rd Ave, Chula Vista, CA 91912",
+        Email:"yashaswi.kul@gmail.com",
+        SupabaseUserID:"random_id",
+        Password:"yash18hema06"
+    }
+    let evuser = new EventGoUser()
+
+    evuser.SetAttributes(details)
+    let resp = await evuser.BuyTicket({
+        ID:null,
+                CreatedAt:6543,
+                Price:1000,
+                Onsale:null,
+                Refundable:null,
+                Confirmed:null,
+                BusinessOwnerID:192385123,
+                CustomerID:12495824123,
+                ShowName:null  
+    })
+
+    console.log(resp)
+}
+
+//test2();
 export class CombinedUser extends BaseEntity{
     /*This class is meant to represent the entire USER combining two tables. It doesn't work just yet but it will in future*/
     constructor(attributes=null){
@@ -439,10 +469,11 @@ export class CombinedUser extends BaseEntity{
         let supa_user_resp = await this.SupaUser().Create()
         let eventgo_user_resp = await this.EventGoUser().Create()
     }
-    async Update(){
-        let resp1 = await this.SupaUser().Update()
-        let resp2 = await this.EventGoUser.Update()
+    async Delete(){
+        let response1 = await this.SupaUser().Delete();
+        let response2 = await this.EventGoUser().Create();
     }
-    async Delete(){}
-    async Exists(){}
+    async Exists(){
+        return this.SupaUser().Exists() && this.EventGoUser().Exists();
+    }
 }

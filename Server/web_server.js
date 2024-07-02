@@ -19,6 +19,12 @@ function CheckEmailAndPass(email, pass){
 
 
 /*********************************************************************EVENT GO WEB SERVER FUNCTIONS*****************************************************************/
+expressServer.app().get("/", Root)
+function Root(req, res){
+    res.send("ROOT endpoint working and reacheable")
+}
+
+
 expressServer.app().get("/login", Login)
 async function Login(req, res){    
     let response = await database.supabase_client().auth.signInWithPassword(req.query)
