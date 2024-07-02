@@ -40,7 +40,7 @@ async function Login(req, res){
     //If login is successful
     let server_resp = new ServerResponse(response)
     server_resp.set_success('Login Successful')
-    res.json(server_resp.get());
+    res.json(response);
 }
 
 

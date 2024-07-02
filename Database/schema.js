@@ -113,10 +113,10 @@ export class Ticket extends BaseEntity{
     }
 
     async Update(){
-        let {data, error} = await supabaseAdminClient.from('Tickets').update(this.attributes).eq('ID', this.attributes.ID)
-        console.log(data, error, " Class Ticket: Updated()")
-        if(error != undefined || error != null){return true}
-        else if(data != undefined && data != null){return false;}
+        let {error} = await supabaseAdminClient.from('Tickets').update(this.attributes).eq('ID', this.attributes.ID)
+        console.log(error, " Class Ticket: Updated()")
+        if(error){return false}
+        else{return true;}
     }
 
     async Exists(){
@@ -412,12 +412,11 @@ export class EventGoUser{
         else if(error)return false;
     }
 
-    async BuyTicket(BusinessID){
-        let{data, error} = await supabaseAdminClient.from('Tickets').select('ID').eq('ID', BusinessID)
-        data.CustomerID = this.attributes.ID
-        data.Onsale = false;
-        data.Confirmed = true;
-        var ticket = new Ticket(data)
+    async BuyTicket(ticket_details){
+        ticket_details.CustomerID = this.attributes.ID
+        ticket_details.Onsale = false;
+        ticket_details.Confirmed = true;
+        let ticket = new Ticket(ticket_details)
         var success = await ticket.Update()
         return success
     }
@@ -436,15 +435,15 @@ async function test2(){
 
     evuser.SetAttributes(details)
     let resp = await evuser.BuyTicket({
-        ID:null,
+                ID:null,
                 CreatedAt:6543,
                 Price:1000,
-                Onsale:null,
-                Refundable:null,
-                Confirmed:null,
+                Onsale:true,
+                Refundable:false,
+                Confirmed:false,
                 BusinessOwnerID:192385123,
                 CustomerID:12495824123,
-                ShowName:null  
+                ShowName:"GTA5 7612 Vice City"  
     })
 
     console.log(resp)
