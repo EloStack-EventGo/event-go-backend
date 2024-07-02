@@ -8,6 +8,7 @@ export class ExpressServer{
         this._host_port = 8080
         this._app = express();
         this._cors = false;
+        this._app.use(express.json())
     }
 
     app(){

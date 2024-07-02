@@ -107,11 +107,11 @@ async function CreateUser(req, res){
     }
 
     let response = await database.eventgo_schema().EventGoUser(details).Create();
-
     console.log(response)
     if(response != false){console.log("created user successfully"); res.send("created user successfully")}
     else{console.log("couldn't create user"); res.send("couldn't create user")}
 }
+
 
 expressServer.app().get('/deleteUser', DeleteUser)
 expressServer.app().get('/deleteUser/EmailAndPass', DeleteUser)
@@ -162,17 +162,24 @@ async function UpdateUser(req, res){
 
 
 /* BUSINESS ACCOUNT ENTITY ROUTE*/
-expressServer.app().get('/createBusiness/EmailAndPass', CreateBusiness)
+expressServer.app().post('/createBusiness/EmailAndPass', CreateBusiness)
 async function CreateBusiness(req, res){
-    //note not working, because 
-    console.log(req.body) // this is undefined
+    //This endpoint creates ALL 3 Entities at same time. It assumes that business and regular account will be 
+    //merged together. Note this contraint may not exist in future
+
+    //NOTE: This endpoint must have a check that if same user tries to create same account it will refuse it
+    //There probably is a check I just don't know much tbh.
     let success = await database.eventgo_schema().SupaUser(req.body.supa_user).Create();
-    req.body.eventgo_user.userid = success.data.user.id
-    eventgo = req.body.eventgo_user
+    if(success == false){res.send("Couldn't signup user"); return false;}
+
+    let user_data = await GetUserByEmailAndPass(req.body.supa_user.email, req.body.supa_user.password)
+    req.body.eventgo_user.userid = user_data.id
+    let eventgo = req.body.eventgo_user
     let data = {Email:eventgo.email, Password:eventgo.password, Address:eventgo.address,  UserID:eventgo.userid}
 
     let busi = req.body.business
     busi.ID = eventgo.userid
+
     let success1 = await database.eventgo_schema().EventGoUser(data).Create();
     let success2 = await database.eventgo_schema().Business(req.body.business).Create();
 
@@ -180,11 +187,62 @@ async function CreateBusiness(req, res){
 
 }
 
-expressServer.app().get('/createBusiness/LinkToAccount', LinkAndCreateBusiness)
+expressServer.app().post('/createBusiness/LinkToAccount', LinkAndCreateBusiness)
 async function LinkAndCreateBusiness(req, res){
-    let success = await database.eventgo_schema().Business(req.query).Create();
+    let business_body = req.body.business
+    let user = req.body.user
+    business_body.ID = user.ID
+
+    //Check if the user exists in either tables
+    let User = await database.eventgo_schema().SupaUser(user)
+    let user_exists = await User.Exists();
+    if(user_exists == false){res.send("User doesn't exist in database"); return false}
+
+    //Check if the business account exists already
+    let business_acc = await database.eventgo_schema().Business(business_body)
+    let exists = await business_acc.Exists();
+    if(exists == true){res.send("Business Profile already exists"); return}
     
+    //Link the account here by creating new business account with same UUID
+    business_acc.SetAttributes(business_body);
+    let created = await business_acc.Create();  
+    if(created == false){res.send("Couldn't create business profile for linking"); return false}
+    res.send("Business profiled created and linked")
 }   
+
+expressServer.app().post('/deleteBusiness', DeleteBusiness)
+async function DeleteBusiness(req, res){
+    let business_body = req.body.business
+
+    //Check if the business account exists already
+    let business_acc = await database.eventgo_schema().Business(business_body)
+    let exists = await business_acc.Exists();
+    if(exists == false){res.send("Business Profile already doesn't exist"); return}
+    
+    //Delete the account here
+    business_acc.SetAttributes(business_body);
+    let deleted = await business_acc.Delete();  
+    if(deleted == false){res.send("Couldn't delete business profile"); return false}
+    res.send("Business profiled deleted")
+}   
+
+
+expressServer.app().post('/UpdateBusiness', UpdateBusiness)
+async function UpdateBusiness(req, res){
+    let business_body = req.body.business
+
+    //Check if the business account exists already
+    let business_acc = await database.eventgo_schema().Business(business_body)
+    let exists = await business_acc.Exists();
+    if(exists == false){res.send("Business Profile doesn't exist"); return}
+    
+    //Update the account here by same UUID
+    business_acc.SetAttributes(business_body);
+    let updated = await business_acc.Update();  
+    if(updated == false){res.send("Couldn't update business profile"); return false}
+    res.send("Business profiled updated")
+} 
+
 
 
 /* TICKET ENTITY ROUTE */
@@ -228,7 +286,6 @@ async function BuyTicket(){
 
         //NOTE: Use paramters or body to get the ticket details as well
         let user = await database.eventgo_schema().EventGoUser(details).BuyTicket(req.body.Ticket)
-    
         return false;
     }
     res.send("couldn't extract sesion and user")
@@ -268,7 +325,6 @@ async function CreateShow(){
 
 
 /* TRANSACTION ENTITY ROUTE */
-
 
 
 
