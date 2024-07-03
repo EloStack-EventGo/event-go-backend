@@ -1,4 +1,4 @@
-import { supabaseAdminClient } from "../Database/schema.js";
+import { supabaseAdminClient } from "../Database/Schema/schema.js"
 
 //Response wrapper for the server
 export class ServerResponse{
