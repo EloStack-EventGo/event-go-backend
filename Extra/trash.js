@@ -62,7 +62,6 @@ app.listen(8888, ()=>{console.log("server is running.....")})
 
 */
 
-
 /*
 async SignUp(){
         if(this.__verify_attributes() == false){return false}
@@ -93,7 +92,6 @@ async SignUp(){
     }
 */
 
-
 /*
 
         //Ignore the UserID if it's not integer because you'd only have integer if someone explicitly wants to create userID
@@ -103,7 +101,6 @@ async SignUp(){
             if(this.__verify_attributes(list) == false){return EntityNotCreated}
         }
 */
-
 
 /*
 class EventGoServer{
@@ -194,7 +191,6 @@ const EVG = new EventGoServer();
 EVG.start();
 */
 
-
 /*
 //REDIRECT URL FOR THE BACKEND SERVER
         //NOTE: Need to change things, because URL shouldn't be specified in here but in web_server.js
@@ -205,7 +201,6 @@ EVG.start();
             }    
         }
 */
-
 
 /*
 async login(user_json_attr){
@@ -239,14 +234,12 @@ let response = await database.signup(req.query)
                 return data;}
  */
 
-
-                /**
+/**
                  * 
                  * # BASIC AUTH REQUEST FLOW
 
 636da2d2-4167-4109-badc-664536a2379
                  */
-
 
 /**
  * 

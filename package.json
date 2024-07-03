@@ -2,11 +2,12 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "supabase.js",
+  "main": "web_server.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node supabase.js"
+    "start": "node web_server",
+    "dev": "nodemon web_server.js"
   },
   "keywords": [],
   "author": "",
@@ -15,5 +16,8 @@
     "@supabase/supabase-js": "^2.43.5",
     "cors": "^2.8.5",
     "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
   }
 }
