@@ -1,34 +1,9 @@
-//import {} from '../Database/schema.js';
-import {EventGoDatabase } from '../Database/database.js';
-import{GetUserByEmailAndPass, ServerResponse} from './utility.js'
-import {ExpressServer} from './express_app.js';
+import { expressServer, database } from "./server_tools";
 
-//Database instance for EventGo database
-const database = new EventGoDatabase()
-const expressServer = new ExpressServer()
-expressServer.use_cors(false); expressServer.set_port(8888)
-
-
-/*********************************************************************WEB SERVER UTILITIES**************************************************************************/
-let SIGNUP_QUEUE = []
-function CheckEmailAndPass(email, pass){
-    let email_val = (email != undefined && email != null)
-    let pass_val = (pass != undefined && pass != null)
-    return (email_val && pass_val)
-}
-
-
-
-/*********************************************************************EVENT GO WEB SERVER FUNCTIONS*****************************************************************/
-
-
-
-                        /*****************************DATABASE ENTITY MANAGEMENT ROUTES****************************/
-    
 
 /* USER ACCOUNT ENTITY  ROUTE */
 expressServer.app().get('/createUser', CreateUser)
-async function CreateUser(req, res){
+export async function CreateUser(req, res){
     let email = req.query.email
     let password = req.query.password
     
@@ -48,7 +23,7 @@ async function CreateUser(req, res){
 
 expressServer.app().get('/deleteUser', DeleteUser)
 expressServer.app().get('/deleteUser/EmailAndPass', DeleteUser)
-async function DeleteUser(req, res){
+export async function DeleteUser(req, res){
     let email = req.query.email
     let password = req.query.password
    
@@ -68,7 +43,7 @@ async function DeleteUser(req, res){
 }
 
 expressServer.app().get('/deleteUser/AccessToken', DeleteUserWithAccessToken)
-async function DeleteUserWithAccessToken(req, res){
+export async function DeleteUserWithAccessToken(req, res){
     let access_token = req.query.access_token
     let user_data = await database.supabase_client().auth.getUser(access_token)
    
@@ -96,7 +71,7 @@ async function UpdateUser(req, res){
 
 /* BUSINESS ACCOUNT ENTITY ROUTE*/
 expressServer.app().post('/createBusiness/EmailAndPass', CreateBusiness)
-async function CreateBusiness(req, res){
+export async function CreateBusiness(req, res){
     //This endpoint creates ALL 3 Entities at same time. It assumes that business and regular account will be 
     //merged together. Note this contraint may not exist in future
 
@@ -121,7 +96,7 @@ async function CreateBusiness(req, res){
 }
 
 expressServer.app().post('/createBusiness/LinkToAccount', LinkAndCreateBusiness)
-async function LinkAndCreateBusiness(req, res){
+export async function LinkAndCreateBusiness(req, res){
     let business_body = req.body.business
     let user = req.body.user
     business_body.ID = user.ID
@@ -145,7 +120,7 @@ async function LinkAndCreateBusiness(req, res){
 
 
 expressServer.app().post('/deleteBusiness', DeleteBusiness)
-async function DeleteBusiness(req, res){
+export async function DeleteBusiness(req, res){
     let business_body = req.body.business
 
     //Check if the business account exists already
@@ -162,7 +137,7 @@ async function DeleteBusiness(req, res){
 
 
 expressServer.app().post('/UpdateBusiness', UpdateBusiness)
-async function UpdateBusiness(req, res){
+export async function UpdateBusiness(req, res){
     let business_body = req.body.business
 
     //Check if the business account exists already
@@ -181,7 +156,7 @@ async function UpdateBusiness(req, res){
 
 /* TICKET ENTITY ROUTE */
 expressServer.app().get('/createTicket', CreateTicket)
-async function CreateTicket(req, res){
+export async function CreateTicket(req, res){
     let show = await database.eventgo_schema().Show(req.body.show)
     let success = await show.Synchronize();
 
@@ -200,7 +175,7 @@ async function CreateTicket(req, res){
 }
 
 expressServer.app().get('/cancelTicket', CancelTicket)
-async function CancelTicket(req, res){
+export async function CancelTicket(req, res){
 
     //A show object must exists which alreaady contains the ticket
     let show = await database.eventgo_schema().Show(req.body.show)
@@ -225,7 +200,7 @@ async function CancelTicket(req, res){
 
 
 expressServer.app().get("/buyTicket", BuyTicket)
-async function BuyTicket(){
+export async function BuyTicket(){
     let access_token = req.query['access_token']
     let response = await database.supabase_client().auth.signInWithPassword(req.query)
 
@@ -256,7 +231,7 @@ async function BuyTicket(){
 
 /* SHOW ENTITY ROUTE */
 expressServer.app().get('/createShow', CreateShow)
-async function CreateShow(req, res){
+export async function CreateShow(req, res){
     //Create business object
     let business = await database.eventgo_schema().Business(req.body.business)
     let busi_exists = await business.Exists();
@@ -286,7 +261,7 @@ async function CreateShow(req, res){
 
 
 expressServer.app().get('/cancelShow', CancelShow)
-async function CancelShow(req, res){
+export async function CancelShow(req, res){
   
     //Create show object 
     let show = await database.eventgo_schema().Show(req.body.show)
@@ -303,7 +278,7 @@ async function CancelShow(req, res){
 }
 
 expressServer.app().post('/updateShow', UpdateShow)
-async function UpdateShow(req, res){
+export async function UpdateShow(req, res){
      //Create show object 
      let show = await database.eventgo_schema().Show(req.body.show)
      let show_exists = await show.Exists();
@@ -321,8 +296,3 @@ async function UpdateShow(req, res){
 
 
 /* TRANSACTION ENTITY ROUTE */
-
-
-
-/*****Starting the Webserver******/
-expressServer.start();
