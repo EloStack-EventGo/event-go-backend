@@ -143,6 +143,11 @@ async function LinkAndCreateBusiness(req, res){
     res.send("Business profiled created and linked")
 }   
 
+expressServer().app().get('/searchBusiness', SearchBusiness)
+async function SearchBusiness(req, res){
+    
+}
+
 
 expressServer.app().post('/deleteBusiness', DeleteBusiness)
 async function DeleteBusiness(req, res){
