@@ -2,7 +2,7 @@
 import {EventGoDatabase } from '../Database/database.js';
 import{GetUserByEmailAndPass, ServerResponse} from './utility.js'
 import {ExpressServer} from './express_app.js';
-import { EventGoBusiness } from '../Database/Schema/Business.js';
+import { EventGoBusiness } from '../Database/Schematics/Business.js';
 
 //Database instance for EventGo database
 const database = new EventGoDatabase()
@@ -17,8 +17,6 @@ function CheckEmailAndPass(email, pass){
     let pass_val = (pass != undefined && pass != null)
     return (email_val && pass_val)
 }
-
-
 
 /*********************************************************************EVENT GO WEB SERVER FUNCTIONS*****************************************************************/
 

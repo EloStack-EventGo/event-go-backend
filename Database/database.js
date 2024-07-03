@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { SUPA_ANON_KEY, SUPA_URL } from "./credentials.js";
-import { SupabaseUser, EventGoUser, EventGoBusiness, CombinedUser, Transaction, Show, Ticket} from "../Database/Schema/schema.js"
+import { SupabaseUser, EventGoUser, EventGoBusiness, CombinedUser, Transaction, Show, Ticket} from "./Schematics/schema.js"
 
 export class DatabaseSchema{
     constructor(){
