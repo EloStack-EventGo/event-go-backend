@@ -2,6 +2,7 @@
 import {EventGoDatabase } from '../Database/database.js';
 import{GetUserByEmailAndPass, ServerResponse} from './utility.js'
 import {ExpressServer} from './express_app.js';
+import { EventGoBusiness } from '../Database/Schema/Business.js';
 
 //Database instance for EventGo database
 const database = new EventGoDatabase()
@@ -92,6 +93,26 @@ async function UpdateUser(req, res){
     res.send("Couldn't update user")
 }
 
+expressServer.app().get('/GetUser', GetUser)
+async function GetUser(req, res){
+
+    //If access_token is available
+    if(req.body.access_token != undefined && req.body.access_token != null && req.body.access_token != ""){
+        let user_data = await database.supabase_client().auth.getUser(req.body.access_token)
+        if(user_data != undefined && user != null){res.json(user_data); return true;}
+    }
+
+    else if(req.body.id != undefined && req.body.id != null && req.body.id != ""){
+        let user_data = await database.supabase_client().auth.signInWithPassword({email:req.body.email, password:req.body.password})
+        if(user_data != null && user_data != undefined){res.json(user_data); return true}
+    }
+
+    else{
+        let empty = {}
+        res.json(empty)
+        return false;
+    }
+}
 
 
 /* BUSINESS ACCOUNT ENTITY ROUTE*/
@@ -143,10 +164,13 @@ async function LinkAndCreateBusiness(req, res){
     res.send("Business profiled created and linked")
 }   
 
-expressServer().app().get('/searchBusiness', SearchBusiness)
-async function SearchBusiness(req, res){
-    
+expressServer.app().get('/findUser', SearchUser)
+async function SearchUser(req, res){
+    let user = await database.eventgo_schema().U(req.body)
+    let result = await business.Search();
+    res.json(result)
 }
+
 
 
 expressServer.app().post('/deleteBusiness', DeleteBusiness)
@@ -256,6 +280,12 @@ async function BuyTicket(){
     res.send("couldn't extract sesion and user")
 }
 
+expressServer.app().get('/findTicket', SearchTicket)
+async function SearchTicket(req, res){
+    let ticket = await database.eventgo_schema().Ticket(req.body)
+    let result = await ticket.Search();
+    res.json(result)
+}
 
 
 
@@ -323,6 +353,14 @@ async function UpdateShow(req, res){
  
      return false;
 }
+
+expressServer.app().get('/findShow', SearchShow)
+async function SearchShow(req, res){
+    let show = await database.eventgo_schema().Show(req.body)
+    let result = await show.Search();
+    res.json(result)
+}
+
 
 
 /* TRANSACTION ENTITY ROUTE */

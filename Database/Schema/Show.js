@@ -86,4 +86,15 @@ export class Show extends BaseEntity{
         let value = await this.__synchronize_with_database_row()
         return value
     }
+
+    async Search(){
+        let {data, error} = await supabaseAdminClient.from('Shows').select().match(this.attributes)
+        console.log(data, error, " Show Search() tracer")
+        if(error == null && (data != null && data != undefined)){
+            console.log("Search():", true)
+            return data;
+        }
+        console.log("Search():", false)
+        return null;
+    }
 }

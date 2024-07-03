@@ -63,7 +63,6 @@ async Exists(){
 
 
 export class EventGoUser{
-//Tested
 constructor(attributes=null){
 
     this._supabase_user = null;
@@ -180,6 +179,19 @@ async GetUserByEmailAndPass(){
 
     return false;
 }
+
+async Search(){
+    let {data, error} = await supabaseAdminClient.from('EventGoUsers').select().match(this.attributes)
+    console.log(data, error, " EventGoUsers Search() tracer")
+    if(error == null && (data != null && data != undefined)){
+        console.log("Search():", true)
+        return data;
+    }
+    console.log("Search():", false)
+    return null;
+}
+
+
 }
 
 

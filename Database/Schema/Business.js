@@ -76,4 +76,16 @@ export class EventGoBusiness extends BaseEntity{
         let success = await this.__synchronize_with_database_row()
         return success
     }
+
+    async Search(){
+        let {data, error} = await supabaseAdminClient.from('EventGoBusinesses').select().match(this.attributes)
+        console.log(data, error, " EventGoBusiness Search() tracer")
+        if(error == null && (data != null && data != undefined)){
+            console.log("Search():", true)
+            return data;
+        }
+        console.log("Search():", false)
+        return null;
+    }
+
 }

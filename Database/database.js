@@ -30,4 +30,9 @@ export class EventGoDatabase{
     supabase_client(){
         return this.supa_database_client
     }
+
+    refresh_supabase_client(){
+        delete this.supa_database_client
+        this.supa_database_client = createClient(SUPA_URL, SUPA_ANON_KEY)
+    }
 }
