@@ -1,9 +1,16 @@
-import { expressServer, database } from "./server_tools";
+import { expressServer, database } from "../server_tools.js"
 
 
 /* USER ACCOUNT ENTITY  ROUTE */
+expressServer.app().get('/Account/Create/AllProfiles', CreateAllProfiles)
+export async function CreateAllProfiles(req, res){
+
+    res.send("Endpoint exists but isn't implemented");
+}
+
+
 expressServer.app().get('/createUser', CreateUser)
-export async function CreateUser(req, res){
+async function CreateUser(req, res){
     let email = req.query.email
     let password = req.query.password
     
@@ -23,7 +30,7 @@ export async function CreateUser(req, res){
 
 expressServer.app().get('/deleteUser', DeleteUser)
 expressServer.app().get('/deleteUser/EmailAndPass', DeleteUser)
-export async function DeleteUser(req, res){
+async function DeleteUser(req, res){
     let email = req.query.email
     let password = req.query.password
    
@@ -43,7 +50,7 @@ export async function DeleteUser(req, res){
 }
 
 expressServer.app().get('/deleteUser/AccessToken', DeleteUserWithAccessToken)
-export async function DeleteUserWithAccessToken(req, res){
+async function DeleteUserWithAccessToken(req, res){
     let access_token = req.query.access_token
     let user_data = await database.supabase_client().auth.getUser(access_token)
    
@@ -67,11 +74,31 @@ async function UpdateUser(req, res){
     res.send("Couldn't update user")
 }
 
+expressServer.app().get('/GetUser', GetUser)
+async function GetUser(req, res){
+
+    //If access_token is available
+    if(req.body.access_token != undefined && req.body.access_token != null && req.body.access_token != ""){
+        let user_data = await database.supabase_client().auth.getUser(req.body.access_token)
+        if(user_data != undefined && user != null){res.json(user_data); return true;}
+    }
+
+    else if(req.body.id != undefined && req.body.id != null && req.body.id != ""){
+        let user_data = await database.supabase_client().auth.signInWithPassword({email:req.body.email, password:req.body.password})
+        if(user_data != null && user_data != undefined){res.json(user_data); return true}
+    }
+
+    else{
+        let empty = {}
+        res.json(empty)
+        return false;
+    }
+}
 
 
 /* BUSINESS ACCOUNT ENTITY ROUTE*/
 expressServer.app().post('/createBusiness/EmailAndPass', CreateBusiness)
-export async function CreateBusiness(req, res){
+async function CreateBusiness(req, res){
     //This endpoint creates ALL 3 Entities at same time. It assumes that business and regular account will be 
     //merged together. Note this contraint may not exist in future
 
@@ -96,7 +123,7 @@ export async function CreateBusiness(req, res){
 }
 
 expressServer.app().post('/createBusiness/LinkToAccount', LinkAndCreateBusiness)
-export async function LinkAndCreateBusiness(req, res){
+async function LinkAndCreateBusiness(req, res){
     let business_body = req.body.business
     let user = req.body.user
     business_body.ID = user.ID
@@ -118,9 +145,17 @@ export async function LinkAndCreateBusiness(req, res){
     res.send("Business profiled created and linked")
 }   
 
+expressServer.app().get('/findUser', SearchUser)
+async function SearchUser(req, res){
+    let user = await database.eventgo_schema().U(req.body)
+    let result = await business.Search();
+    res.json(result)
+}
+
+
 
 expressServer.app().post('/deleteBusiness', DeleteBusiness)
-export async function DeleteBusiness(req, res){
+async function DeleteBusiness(req, res){
     let business_body = req.body.business
 
     //Check if the business account exists already
@@ -137,7 +172,7 @@ export async function DeleteBusiness(req, res){
 
 
 expressServer.app().post('/UpdateBusiness', UpdateBusiness)
-export async function UpdateBusiness(req, res){
+async function UpdateBusiness(req, res){
     let business_body = req.body.business
 
     //Check if the business account exists already
@@ -156,7 +191,7 @@ export async function UpdateBusiness(req, res){
 
 /* TICKET ENTITY ROUTE */
 expressServer.app().get('/createTicket', CreateTicket)
-export async function CreateTicket(req, res){
+async function CreateTicket(req, res){
     let show = await database.eventgo_schema().Show(req.body.show)
     let success = await show.Synchronize();
 
@@ -175,7 +210,7 @@ export async function CreateTicket(req, res){
 }
 
 expressServer.app().get('/cancelTicket', CancelTicket)
-export async function CancelTicket(req, res){
+async function CancelTicket(req, res){
 
     //A show object must exists which alreaady contains the ticket
     let show = await database.eventgo_schema().Show(req.body.show)
@@ -200,7 +235,7 @@ export async function CancelTicket(req, res){
 
 
 expressServer.app().get("/buyTicket", BuyTicket)
-export async function BuyTicket(){
+async function BuyTicket(){
     let access_token = req.query['access_token']
     let response = await database.supabase_client().auth.signInWithPassword(req.query)
 
@@ -226,12 +261,18 @@ export async function BuyTicket(){
     res.send("couldn't extract sesion and user")
 }
 
+expressServer.app().get('/findTicket', SearchTicket)
+async function SearchTicket(req, res){
+    let ticket = await database.eventgo_schema().Ticket(req.body)
+    let result = await ticket.Search();
+    res.json(result)
+}
 
 
 
 /* SHOW ENTITY ROUTE */
 expressServer.app().get('/createShow', CreateShow)
-export async function CreateShow(req, res){
+async function CreateShow(req, res){
     //Create business object
     let business = await database.eventgo_schema().Business(req.body.business)
     let busi_exists = await business.Exists();
@@ -261,7 +302,7 @@ export async function CreateShow(req, res){
 
 
 expressServer.app().get('/cancelShow', CancelShow)
-export async function CancelShow(req, res){
+async function CancelShow(req, res){
   
     //Create show object 
     let show = await database.eventgo_schema().Show(req.body.show)
@@ -278,7 +319,7 @@ export async function CancelShow(req, res){
 }
 
 expressServer.app().post('/updateShow', UpdateShow)
-export async function UpdateShow(req, res){
+async function UpdateShow(req, res){
      //Create show object 
      let show = await database.eventgo_schema().Show(req.body.show)
      let show_exists = await show.Exists();
@@ -294,5 +335,9 @@ export async function UpdateShow(req, res){
      return false;
 }
 
-
-/* TRANSACTION ENTITY ROUTE */
+expressServer.app().get('/findShow', SearchShow)
+async function SearchShow(req, res){
+    let show = await database.eventgo_schema().Show(req.body)
+    let result = await show.Search();
+    res.json(result)
+}
