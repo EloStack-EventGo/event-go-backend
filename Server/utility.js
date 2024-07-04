@@ -11,7 +11,10 @@ export class ServerResponse{
         }
     }
 
-    set_response(message){this.response['Response'] = message}
+    set_response(message){
+        this.response['Response'] = message
+    }
+    
     set_not_sucess(detail){
         this.response['ResponseDetail'] = null
         this.response['Error'] = true;

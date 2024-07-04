@@ -3,13 +3,15 @@ import {EventGoDatabase } from '../Database/database.js';
 import{GetUserByEmailAndPass, ServerResponse} from './utility.js'
 import {ExpressServer} from './express_app.js';
 import { EventGoBusiness } from '../Database/Schematics/Business.js';
+import bodyParser from 'body-parser';
 
 //Database instance for EventGo database
 const database = new EventGoDatabase()
 const expressServer = new ExpressServer()
 expressServer.use_cors(false); expressServer.set_port(8888)
 
-
+// Middleware to parse JSON bodies
+expressServer.app().use(bodyParser.json());
 /*********************************************************************WEB SERVER UTILITIES**************************************************************************/
 let SIGNUP_QUEUE = []
 function CheckEmailAndPass(email, pass){
@@ -19,6 +21,107 @@ function CheckEmailAndPass(email, pass){
 }
 
 /*********************************************************************EVENT GO WEB SERVER FUNCTIONS*****************************************************************/
+expressServer.app().get("/", Root)
+function Root(req, res){
+    res.send("ROOT endpoint working and reacheable")
+}
+
+
+
+ /* UTILITY ROUTES */
+/*expressServer.app().get("/login", Login)
+async function Login(req, res){    
+    let response = await database.supabase_client().auth.signInWithPassword(req.query)
+
+    console.log(response)
+    if(response == false){
+        let server_resp = new ServerResponse(null)
+        server_resp.set_not_sucess('Login Unsuccessful')
+        res.json(server_resp.get())
+        return false;
+    }
+
+    //If login is successful
+    let server_resp = new ServerResponse(response)
+    server_resp.set_success('Login Successful')
+    res.json(response);
+}*/
+
+expressServer.app().post("/login", Login)
+async function Login(req, res){    
+    try {
+        let response = await database.supabase_client().auth.signInWithPassword(req.body);
+
+        console.log(response, "server route login");
+
+        if (!response.data || !response.data.session) {
+            let server_resp = new ServerResponse(null);
+            server_resp.set_not_success('Login Unsuccessful');
+            res.status(401).json(server_resp.get());
+            return;
+        }
+
+        const token = response.data.session.access_token; // Access the token safely
+        console.log("Access token:", token);
+
+        let server_resp = new ServerResponse(response.data);
+        server_resp.set_success('Login Successful');
+        res.json(server_resp.get());
+    } catch (error) {
+        console.error("Error during login:", error);
+        let server_resp = new ServerResponse(null);
+        server_resp.set_not_sucess("Login unsuccessful due to server error")
+        res.status(500).json(server_resp.get());
+    }
+}
+
+
+
+expressServer.app().post('/signup', SignUp)
+async function SignUp(req, res){
+    console.log(req.query)
+    //Check if the email and password are correct
+    if(CheckEmailAndPass(req.body.email, req.body.password) == false){
+        res.send("Email and Password don't match backend criterion. Values either undefined or null")
+        return false;
+    }
+//latest:try-catch
+try{
+    //Create the user in auth.users table by creating new SupaUser() objcet
+    let response = await database.eventgo_schema().SupaUser(req.body).Create();
+    console.log(response, "server route signup")
+    
+    //If the creation response was not successfull in creating
+    if(response === false){
+        let server_resp = new ServerResponse(null)
+        server_resp.set_not_sucess('SignUp unsuccessful');
+        res.json(server_resp.get())
+        return false;
+    }
+
+    //If the creation of user in auth.users table was successful
+    let server_resp = new ServerResponse(response['user'])
+    server_resp.set_success('SignUp Successfull')
+    res.json(server_resp.get())
+}catch(error){
+    console.error("Error during signup:", error);
+        res.status(500).send("Error during signup. Please try again later.");
+}
+}
+
+
+expressServer.app().get('/confirmation', Confirmation)
+async function Confirmation(req, res){
+    console.log(req, "/confirmation route:  Confirmation recieved")
+    console.log(req.query)
+
+    //Need an access token to identify which user's profile to create
+    //let response = await database.eventgo_schema().EventGoUser().Create(req.query)
+
+    //console.log(response, "/confirmation endpoint tracer")
+    res.send("Confirmation endpoint reached")
+}
+
 
 
 
