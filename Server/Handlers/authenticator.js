@@ -1,7 +1,8 @@
 import { expressServer, database} from "../server_tools.js"
 
 
-expressServer.app().get('/confirmation', Confirmation)
+
+expressServer.router('router1').get('/confirmation', Confirmation)
 export async function Confirmation(req, res){
     console.log(req, "/confirmation route:  Confirmation recieved")
     console.log(req.query)
