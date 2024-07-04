@@ -1,10 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import { SUPA_ANON_KEY, SUPA_URL } from "./credentials.js";
 import { SupabaseUser, EventGoUser, EventGoBusiness, CombinedUser, Transaction, Show, Ticket} from "./Schematics/schema.js"
-import dotenv from 'dotenv';
-
-dotenv.config({ path: '.env' });
-
 export class DatabaseSchema{
     constructor(){
 
