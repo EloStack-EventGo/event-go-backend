@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import * as RouteHandlers from "./Handlers/handlers.js"
 import { expressServer } from "./server_tools.js";
 

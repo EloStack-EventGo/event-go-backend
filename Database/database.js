@@ -1,6 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 import { SUPA_ANON_KEY, SUPA_URL } from "./credentials.js";
 import { SupabaseUser, EventGoUser, EventGoBusiness, CombinedUser, Transaction, Show, Ticket} from "./Schematics/schema.js"
+import dotenv from 'dotenv';
+
+dotenv.config({ path: '.env' });
 
 export class DatabaseSchema{
     constructor(){
@@ -19,7 +22,7 @@ export class DatabaseSchema{
 export class EventGoDatabase{
 
     constructor(){
-        this.supa_database_client = createClient(SUPA_URL, SUPA_ANON_KEY)
+        this.supa_database_client = createClient(process.env.SUPA_URL, process.env.SUPA_ANON_KEY)
         this.schema = new DatabaseSchema();
     }
     
@@ -33,6 +36,6 @@ export class EventGoDatabase{
 
     refresh_supabase_client(){
         delete this.supa_database_client
-        this.supa_database_client = createClient(SUPA_URL, SUPA_ANON_KEY)
+        this.supa_database_client = createClient(process.env.SUPA_URL, process.env.SUPA_ANON_KEY)
     }
 }
