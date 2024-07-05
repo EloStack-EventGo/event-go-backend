@@ -29,7 +29,8 @@ function Root(req, res){
 
 
  /* UTILITY ROUTES */
-/*expressServer.app().get("/login", Login)
+/*previous login
+expressServer.app().get("/login", Login)
 async function Login(req, res){    
     let response = await database.supabase_client().auth.signInWithPassword(req.query)
 
@@ -56,12 +57,12 @@ async function Login(req, res){
 
         if (!response.data || !response.data.session) {
             let server_resp = new ServerResponse(null);
-            server_resp.set_not_success('Login Unsuccessful');
+            server_resp.set_not_sucess("Login unsuccessful")
             res.status(401).json(server_resp.get());
             return;
         }
 
-        const token = response.data.session.access_token; // Access the token safely
+        const token = response.data.session.access_token; 
         console.log("Access token:", token);
 
         let server_resp = new ServerResponse(response.data);
@@ -76,8 +77,8 @@ async function Login(req, res){
 }
 
 
-
-expressServer.app().post('/signup', SignUp)
+//previous signup
+/* expressServer.app().post('/signup', SignUp)
 async function SignUp(req, res){
     console.log(req.query)
     //Check if the email and password are correct
@@ -107,7 +108,53 @@ try{
     console.error("Error during signup:", error);
         res.status(500).send("Error during signup. Please try again later.");
 }
+}*/
+
+
+//  signup route + enable email verification
+
+
+expressServer.app().post('/signup', SignUp);
+
+async function SignUp(req, res) {
+    try {
+        // Check if email and password meet backend criteria
+        if (!CheckEmailAndPass(req.body.email, req.body.password)) {
+            return res.status(400).send("Email and Password don't match backend criterion. Values either undefined or null");
+        }
+
+        // Sign up the user with Supabase
+        const { user, error } = await database.supabase_client().auth.signUp({
+            email: req.body.email,
+            password: req.body.password,
+            options: {
+                redirectTo: 'http://localhost:3000/verify-email', 
+            }
+        });
+
+        if (error) {
+            throw error;
+        }
+
+        // If signup is successful, 
+        console.log("Signup successful:", user);
+
+        // can Handle additional logic after signup if needed
+        // In this case, assuming the user is successfully created in database
+        let response = await database.eventgo_schema().SupaUser(req.body).Create();
+        console.log("User created in database:", response);
+
+        // response to send back to the user
+        let server_resp = new ServerResponse(user);
+        server_resp.set_success('Signup Successful');
+        res.json(server_resp.get());
+
+    } catch (error) {
+        console.error("Error during signup:", error);
+        res.status(500).send("Error during signup. Please try again later.");
+    }
 }
+
 
 
 expressServer.app().get('/confirmation', Confirmation)
